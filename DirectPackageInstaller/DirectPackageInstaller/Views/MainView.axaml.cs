@@ -169,12 +169,22 @@ namespace DirectPackageInstaller.Views
                 if (Model.PS4IP == Ip)
                 {
                     var HadRpi = Model.ConsoleHasRpi;
+                    var WasReady = Model.ConsoleIsReady;
 
                     Model.ApplyConsoleStatus(Result);
 
                     //O RPI acabou de ficar disponível: confere o que já está instalado
                     if (Model.ConsoleHasRpi && !HadRpi)
                         _ = RefreshInstalledFlags(true);
+
+                    //Avisa quando o RPI é aberto ou fechado com o console acessível
+                    if (WasReady && Model.ConsoleIsReady && Model.ConsoleHasRpi != HadRpi)
+                    {
+                        if (Model.ConsoleHasRpi)
+                            Toast.Show("Remote Package Installer detected", "Installation progress, pause and uninstall are available.", ToastKind.Success);
+                        else
+                            Toast.Show("Remote Package Installer closed", "Open it on the console to keep those controls.", ToastKind.Info, 8);
+                    }
                 }
             }
             catch

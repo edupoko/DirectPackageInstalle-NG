@@ -280,7 +280,7 @@ namespace DirectPackageInstaller.ViewModels
 
                 return _consoleStatus.State switch
                 {
-                    ConsoleState.Ready => $"{Prefix}{PS4IP}  ·  {_consoleStatus.Services}",
+                    ConsoleState.Ready => $"{Prefix}{PS4IP}  ·  {_consoleStatus.Services}" + (RpiMissing ? "  ·  RPI off" : ""),
                     ConsoleState.NoInstaller => $"{Prefix}{PS4IP}  ·  no installer found",
                     ConsoleState.Offline => $"{Prefix}{PS4IP}  ·  not reachable",
                     _ => $"{Prefix}{PS4IP}  ·  checking..."
@@ -301,6 +301,7 @@ namespace DirectPackageInstaller.ViewModels
             ? "No console configured. Open Settings and press DETECT CONSOLE."
             : (ConsoleTypeShown.Length > 0 ? ConsoleTypeNote + ". " : "") + _consoleStatus.State switch
             {
+                ConsoleState.Ready when RpiMissing => "Ready to send. Remote Package Installer isn't running: open it on the console to get the real installation progress, pause, cancel and uninstall.",
                 ConsoleState.Ready => "Ready to send. Click to open the network settings.",
                 ConsoleState.NoInstaller => "The console answers, but GoldHEN, Remote Package Installer or etaHEN weren't found. Enable the payload server on the console.",
                 ConsoleState.Offline => "The console doesn't answer. Check that it is on and on the same network.",
@@ -308,6 +309,16 @@ namespace DirectPackageInstaller.ViewModels
             };
 
         /// <summary>O console responde e o Remote Package Installer está ativo (instalar com controle, desinstalar).</summary>
+        /// <summary>
+        /// O console responde com algum instalador, mas o RPI não está aberto. No PS5 (etaHEN) não se aplica:
+        /// o RPI é um aplicativo do PS4.
+        /// </summary>
+        public bool RpiMissing => _consoleStatus.State == ConsoleState.Ready
+            && !_consoleStatus.Services.Contains("RPI") && !_consoleStatus.Services.Contains("etaHEN");
+
+        /// <summary>O console está acessível com algum instalador.</summary>
+        public bool ConsoleIsReady => _consoleStatus.State == ConsoleState.Ready;
+
         public bool ConsoleHasRpi => _consoleStatus.State == ConsoleState.Ready && _consoleStatus.Services.Contains("RPI");
 
         private void UpdateRpiFlags()
@@ -319,6 +330,7 @@ namespace DirectPackageInstaller.ViewModels
         private void RaiseConsoleStatusTexts()
         {
             this.RaisePropertyChanged(nameof(ConsoleHasRpi));
+            this.RaisePropertyChanged(nameof(RpiMissing));
             this.RaisePropertyChanged(nameof(ConsoleTypeShown));
             this.RaisePropertyChanged(nameof(ConsoleTypeNote));
             this.RaisePropertyChanged(nameof(ConsoleStatusText));
