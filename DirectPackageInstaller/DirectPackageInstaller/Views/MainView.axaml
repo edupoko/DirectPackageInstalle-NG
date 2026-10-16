@@ -295,6 +295,39 @@
                         IsVisible="{Binding CanCancelTransfer}" Click="CancelTransferClick"/>
             </Grid>
         </Border>
+
+        <!-- Toasts: canto inferior direito, acima da barra de estado -->
+        <ItemsControl Grid.Row="0" Grid.RowSpan="5" Grid.ColumnSpan="2" ItemsSource="{Binding Toasts}"
+                      Width="380" Margin="0,0,16,56" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                      ZIndex="100">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Spacing="8"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="#26262A" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                            BoxShadow="0 6 20 0 #90000000">
+                        <Grid ColumnDefinitions="3,Auto,*,Auto">
+                            <Border Grid.Column="0" Background="{Binding AccentBrush}"/>
+                            <Path Grid.Column="1" Data="{Binding Icon}" Stroke="{Binding AccentBrush}" StrokeThickness="1.5"
+                                  StrokeLineCap="Round" StrokeJoin="Round" Width="16" Height="16" Stretch="None"
+                                  Margin="14,0,0,0" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="2" Margin="12,12,4,12" Spacing="3" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0"/>
+                                <TextBlock Text="{Binding Message}" Classes="caption" TextWrapping="Wrap" Margin="0"
+                                           IsVisible="{Binding HasMessage}"/>
+                            </StackPanel>
+                            <Button Grid.Column="3" Classes="window" Width="32" Height="32" Margin="0,4,4,0"
+                                    VerticalAlignment="Top" ToolTip.Tip="Dismiss" Click="ToastCloseClick">
+                                <Path Classes="icon" Data="{StaticResource IconClose}"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </Grid>
     <UserControl.Styles>
         <Style Selector="CheckBox">

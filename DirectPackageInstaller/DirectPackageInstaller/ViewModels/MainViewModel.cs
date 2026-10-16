@@ -122,6 +122,9 @@ namespace DirectPackageInstaller.ViewModels
             set => this.RaiseAndSetIfChanged(ref _DHCPService, value);
         }
 
+        /// <summary>Notificações visíveis (ver Others/Toast.cs).</summary>
+        public ObservableCollection<ToastItem> Toasts => Toast.Items;
+
         // ---- Histórico de envios ----
 
         public ObservableCollection<HistoryEntry> History { get; } = new ObservableCollection<HistoryEntry>();

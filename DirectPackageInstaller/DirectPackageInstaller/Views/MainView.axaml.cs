@@ -1237,7 +1237,7 @@ namespace DirectPackageInstaller.Views
                 }
             }
 
-            await MessageBox.ShowAsync("Packages Sent!", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Toast.Show("Packages sent", "All packages in the list were sent to the console", ToastKind.Success);
         }
 
         private static int PS4IdleSeconds()
@@ -1446,6 +1446,12 @@ namespace DirectPackageInstaller.Views
 
         private void CancelTransferClick(object? sender, RoutedEventArgs e) => CancelTransfer();
 
+        private void ToastCloseClick(object? sender, RoutedEventArgs e)
+        {
+            if ((sender as Control)?.DataContext is ToastItem Item)
+                Toast.Dismiss(Item);
+        }
+
         private void OnTransferSessionEnded(TransferSession Session)
         {
             var Entry = new HistoryEntry
@@ -1464,6 +1470,11 @@ namespace DirectPackageInstaller.Views
                     _ => "FAILED"
                 }
             };
+
+            if (Session.Result == TransferPhase.Finished)
+                Toast.Show("Download finished", $"{Session.Title} — the console is installing it", ToastKind.Success, 8);
+            else if (Session.Result == TransferPhase.Cancelled)
+                Toast.Show("Transfer cancelled", Session.Title);
 
             Dispatcher.UIThread.Post(() =>
             {

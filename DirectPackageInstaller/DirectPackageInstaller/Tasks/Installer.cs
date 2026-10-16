@@ -250,7 +250,7 @@ namespace DirectPackageInstaller.Tasks
                     if (Result.Contains("SUCCESS:"))
                     {
                         if (!Silent)
-                            await MessageBox.ShowAsync("Package Sent!", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            Toast.Show("Package sent", CurrentPKG.FriendlyName ?? "", ToastKind.Success);
 
                         return true;
                     }
@@ -321,7 +321,7 @@ namespace DirectPackageInstaller.Tasks
                 if (Result.Contains("\"success\""))
                 {
                     if (!Silent)
-                        await MessageBox.ShowAsync("Package Sent!", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        Toast.Show("Package sent", CurrentPKG.FriendlyName ?? "", ToastKind.Success);
 
                     return true;
                 }
