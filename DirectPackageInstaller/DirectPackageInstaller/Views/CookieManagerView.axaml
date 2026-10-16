@@ -21,7 +21,7 @@
         </Grid.RowDefinitions>
         <TextBox Name="tbCookie" Grid.ColumnSpan="2" Text="{Binding CookieList}"></TextBox>
         <Label Grid.Row="1">You can use the "Get cookies.txt" extension to get a valid cookie list</Label>
-        <Button Name="btnSave" Grid.Row="1" Grid.Column="1">Save Cookies</Button>
+        <Button Name="btnSave" Classes="primary" Grid.Row="1" Grid.Column="1">Save Cookies</Button>
     </Grid>
     <UserControl.Styles>
         <Style Selector="TextBox">
