@@ -6,7 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DirectPackageInstaller.Views.MainView"
              Foreground="White"
-             Background="#171C2C">
+             Background="{DynamicResource AppBackgroundBrush}">
   <Design.DataContext>
     <viewModels:MainViewModel />
   </Design.DataContext>

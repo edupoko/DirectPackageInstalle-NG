@@ -12,6 +12,6 @@
         Title="Link List"
         Width="700"
         Height="400"
-        Background="#171C2C">
+        Background="{DynamicResource AppBackgroundBrush}">
     <views:LinkListView Name="View"/>
 </Window>

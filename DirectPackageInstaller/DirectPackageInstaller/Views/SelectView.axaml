@@ -7,7 +7,7 @@
              Height="60"
              x:Class="DirectPackageInstaller.Views.SelectView"
              Foreground="White"
-             Background="#171C2C">
+             Background="{DynamicResource AppBackgroundBrush}">
     <Design.DataContext>
         <viewModels:SelectViewModel/>
     </Design.DataContext>
