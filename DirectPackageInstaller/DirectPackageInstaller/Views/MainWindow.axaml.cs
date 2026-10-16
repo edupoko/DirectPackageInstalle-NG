@@ -3,6 +3,9 @@ using System.ComponentModel;
 using Acornima.Ast;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Media;
 using DirectPackageInstaller.Tasks;
 using DirectPackageInstaller.ViewModels;
 
@@ -30,6 +33,67 @@ namespace DirectPackageInstaller.Views
             this.AttachDevTools();
 #endif
             await View.OnShown(this);
+        }
+
+        // ---- Barra de título e moldura próprias ----
+
+        private const string MaximizeGeometry = "M0.5,0.5 L9.5,0.5 L9.5,9.5 L0.5,9.5 Z";
+        private const string RestoreGeometry = "M2.5,0.5 L9.5,0.5 L9.5,7.5 M0.5,2.5 L7.5,2.5 L7.5,9.5 L0.5,9.5 Z";
+
+        private void TitleBarPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+                return;
+
+            if (e.ClickCount == 2)
+                ToggleMaximize();
+            else
+                BeginMoveDrag(e);
+        }
+
+        private void ToggleMaximize()
+        {
+            if (!CanResize)
+                return;
+
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void MinimizeClick(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+        private void MaximizeClick(object? sender, RoutedEventArgs e) => ToggleMaximize();
+
+        private void CloseClick(object? sender, RoutedEventArgs e) => Close();
+
+        private void ResizeGripPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (!CanResize || WindowState != WindowState.Normal)
+                return;
+
+            if (sender is Control { Tag: string Name } && Enum.TryParse(Name, out WindowEdge Edge))
+                BeginResizeDrag(Edge, e);
+        }
+
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+
+            if (change.Property != WindowStateProperty)
+                return;
+
+            var Maximized = WindowState == WindowState.Maximized;
+
+            var Glyph = this.Find<Avalonia.Controls.Shapes.Path>("MaximizeGlyph");
+            if (Glyph != null)
+                Glyph.Data = Geometry.Parse(Maximized ? RestoreGeometry : MaximizeGeometry);
+
+            var Frame = this.Find<Border>("WindowFrame");
+            if (Frame != null)
+                Frame.BorderThickness = new Thickness(Maximized ? 0 : 1);
+
+            var Grips = this.Find<Grid>("ResizeGrips");
+            if (Grips != null)
+                Grips.IsVisible = !Maximized;
         }
 
         private bool ForceClose = false;
