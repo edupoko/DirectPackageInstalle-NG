@@ -109,6 +109,7 @@
         <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="12,12,12,12">
             <Button Classes="tab" Classes.active="{Binding ShowLibrary}" Click="TabLibraryClick" Content="{Binding LibraryTabText}"/>
             <Button Classes="tab" Classes.active="{Binding ShowPackage}" Click="TabPackageClick" Content="PACKAGE"/>
+            <Button Classes="tab" Classes.active="{Binding ShowHistory}" Click="TabHistoryClick" Content="{Binding HistoryTabText}"/>
         </StackPanel>
 
         <!-- Barra do Pacote: URL ou caminho e a ação principal -->
@@ -159,6 +160,10 @@
                                                        MaxLines="2" TextTrimming="CharacterEllipsis" Margin="0"/>
                                             <TextBlock Text="{Binding Subtitle}" Classes="caption" Margin="0"/>
                                             <TextBlock Text="{Binding Details}" Classes="caption" Margin="0"/>
+                                            <Border Classes="tag" HorizontalAlignment="Left" Margin="0,4,0,0"
+                                                    IsVisible="{Binding IsSent}" BorderBrush="#4ADE80">
+                                                <TextBlock Text="SENT" Foreground="#4ADE80"/>
+                                            </Border>
                                         </StackPanel>
                                     </Grid>
                                     <Button Content="OPEN" Classes="primary" HorizontalAlignment="Stretch"
@@ -177,6 +182,44 @@
                 <Button Content="CHOOSE FOLDER" Classes="primary" Click="LibraryChooseClick" Height="36"
                         Padding="22,0" HorizontalAlignment="Center" IsVisible="{Binding !HasLibraryPath}"/>
             </StackPanel>
+        </Grid>
+
+        <!-- Barra do Histórico -->
+        <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Margin="12,0,12,12"
+              IsVisible="{Binding ShowHistory}">
+            <TextBlock Grid.Column="0" Text="Packages sent to the console from this PC" Classes="caption"
+                       VerticalAlignment="Center" Margin="0"/>
+            <Button Grid.Column="1" Content="CLEAR HISTORY" Height="36" Padding="16,0" Click="ClearHistoryClick"
+                    IsEnabled="{Binding !ShowHistoryEmpty}"/>
+        </Grid>
+
+        <!-- Histórico: um envio por linha -->
+        <Grid Grid.Row="3" Grid.ColumnSpan="2" IsVisible="{Binding ShowHistory}" Margin="12,0,12,12">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding History}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="0,0,0,1" Padding="0,10">
+                                <Grid ColumnDefinitions="*,150,100,120">
+                                    <StackPanel Grid.Column="0" Spacing="3" VerticalAlignment="Center" Margin="0,0,12,0">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0"/>
+                                        <TextBlock Text="{Binding Subtitle}" Classes="caption" Margin="0"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding DateText}" Classes="caption" Margin="0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding SizeText}" Classes="caption" Margin="0"/>
+                                    <Border Grid.Column="3" Classes="tag" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                            BorderBrush="{Binding ResultBrush}">
+                                        <TextBlock Text="{Binding Result}" Foreground="{Binding ResultBrush}"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <TextBlock IsVisible="{Binding ShowHistoryEmpty}" Text="No packages sent yet"
+                       Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0"/>
         </Grid>
 
         <Grid Grid.Row="3" Grid.ColumnSpan="2" Name="PreviewGrid" IsVisible="{Binding ShowPackage}" Margin="12,0,12,12">
@@ -237,7 +280,20 @@
 
         <Border Grid.Row="4" Grid.ColumnSpan="2" BorderBrush="{DynamicResource BorderStrongBrush}"
                 BorderThickness="0,1,0,0" Padding="12,8">
-            <TextBlock Name="Status" Classes="caption" Margin="0" TextTrimming="CharacterEllipsis"/>
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBlock Grid.Column="0" Name="Status" Classes="caption" Margin="0" TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="12,0,0,0"
+                            VerticalAlignment="Center" IsVisible="{Binding TransferVisible}">
+                    <TextBlock Text="{Binding TransferText}" Classes="caption" Margin="0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}" MaxWidth="560" TextTrimming="CharacterEllipsis"/>
+                    <ProgressBar Width="200" Height="6" MinHeight="6" Minimum="0" Maximum="1" VerticalAlignment="Center"
+                                 Value="{Binding TransferProgress}" IsIndeterminate="{Binding TransferIndeterminate}"
+                                 IsVisible="{Binding TransferShowBar}"/>
+                </StackPanel>
+                <Button Grid.Column="2" Content="CANCEL" Height="28" Padding="14,0" Margin="12,0,0,0" FontSize="11"
+                        IsVisible="{Binding CanCancelTransfer}" Click="CancelTransferClick"/>
+            </Grid>
         </Border>
     </Grid>
     <UserControl.Styles>

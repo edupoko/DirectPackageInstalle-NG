@@ -307,3 +307,6 @@ $RECYCLE.BIN/
 
 # Configurações do usuário (podem conter API keys)
 Settings.ini
+
+# Histórico de envios do usuário
+History.tsv

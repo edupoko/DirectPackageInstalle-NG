@@ -58,7 +58,6 @@ namespace DirectPackageInstaller.Views
 
         private DecompressorHelperStream[]? CurrentDecompressorVolumes = null;
 
-        private DateTime LastTransferProgressUpdate = DateTime.MinValue;
 
         public MainViewModel? Model => (MainViewModel?)DataContext;
         
@@ -218,8 +217,11 @@ namespace DirectPackageInstaller.Views
 
         private void TabPackageClick(object? sender, RoutedEventArgs e)
         {
-            if (Model != null)
-                Model.ShowLibrary = false;
+            if (Model == null)
+                return;
+
+            Model.ShowLibrary = false;
+            Model.ShowHistory = false;
         }
 
         private void LibraryChooseClick(object? sender, RoutedEventArgs e) => _ = ChooseLibraryFolder();
@@ -232,6 +234,7 @@ namespace DirectPackageInstaller.Views
                 return;
 
             Model.ShowLibrary = false;
+            Model.ShowHistory = false;
 
             //Já carregado: só mostra os detalhes (carregar de novo acionaria a instalação)
             if (Model.CurrentURL == Item.Path && InputType != Source.NONE)
@@ -372,6 +375,18 @@ namespace DirectPackageInstaller.Views
                      });
                  }
              }
+
+             Model.SetHistory(HistoryStore.Load());
+             TransferMonitor.Instance.SessionEnded += OnTransferSessionEnded;
+
+             //Atualiza a barra de estado do envio (velocidade, conclusão, modo direto)
+             var TransferTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+             TransferTimer.Tick += (_, _) =>
+             {
+                 TransferMonitor.Instance.Tick();
+                 Model?.ApplyTransfer(TransferMonitor.Instance);
+             };
+             TransferTimer.Start();
 
              Model.PropertyChanged += ModelOnPropertyChanged;
 
@@ -949,6 +964,8 @@ namespace DirectPackageInstaller.Views
             //Notificações da biblioteca e do resumo do pacote não são configurações
             if (e.PropertyName is { } Name && Name != "LibraryPath"
                 && (Name.StartsWith("Library") || Name.StartsWith("Pkg") || Name == "HasPkg" || Name == "HasLibraryStatus" || Name == "ShowLibraryToolbar"
+                    || Name.StartsWith("Transfer") || Name.StartsWith("History") || Name == "CanCancelTransfer"
+                    || Name == "ShowHistory" || Name == "ShowHistoryEmpty"
                     || Name == "ShowLibrary" || Name == "ShowPackage" || Name == "HasLibraryPath"
                     || Name == "ShowLibraryEmpty" || Name == "IsScanningLibrary"))
                 return;
@@ -1090,6 +1107,10 @@ namespace DirectPackageInstaller.Views
                 return false;
             }
 
+            var Pkg = Installer.CurrentPKG;
+            var PkgVersion = Pkg.Params?.FirstOrDefault(x => x.Name == "VERSION")?.Value ?? "";
+            TransferMonitor.Instance.Begin(Pkg.FriendlyName ?? "", Pkg.TitleID ?? "", PkgVersion, SourceLabel(), Pkg.PackageSize);
+
             var OriStatus = Status.Text;
             btnLoad.Content = "Pushing...";
             PackagesMenu.IsEnabled = false;
@@ -1108,7 +1129,12 @@ namespace DirectPackageInstaller.Views
                     }
                 }
 
-                return await Installer.PushPackage(App.Config, InputType, PKGStream!, URL, CurrentDecompressor, CurrentDecompressorVolumes, SetStatus, () => Status.Text, Silent);
+                var Sent = await Installer.PushPackage(App.Config, InputType, PKGStream!, URL, CurrentDecompressor, CurrentDecompressorVolumes, SetStatus, () => Status.Text, Silent);
+
+                if (Sent)
+                    TransferMonitor.Instance.MarkSent();
+
+                return Sent;
             }
             catch
             {
@@ -1116,6 +1142,12 @@ namespace DirectPackageInstaller.Views
             }
             finally
             {
+                //Saiu sem enviar (console offline, erro, cancelado na preparação)
+                if (TransferMonitor.Instance.Phase == TransferPhase.Preparing)
+                    TransferMonitor.Instance.MarkFailed();
+
+                Model?.ApplyTransfer(TransferMonitor.Instance);
+
                 await SetStatus(OriStatus);
                 PackagesMenu.IsEnabled = true;
                 btnLoad.IsEnabled = true;
@@ -1300,6 +1332,7 @@ namespace DirectPackageInstaller.Views
             _ = URLAnalyzer.Analyze(Info.Links, false);
 
             Model!.ShowLibrary = false;
+            Model.ShowHistory = false;
             tbURL.Text = Info.Links.First();
             App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
         }
@@ -1398,37 +1431,82 @@ namespace DirectPackageInstaller.Views
             }
         }
 
-        private void ServerOnTransferProgressChanged(TransferProgressInfo Info)
+        private void ServerOnTransferProgressChanged(TransferProgressInfo Info) => TransferMonitor.Instance.OnProgress(Info);
+
+        // ---- Envio: cancelar e histórico ----
+
+        /// <summary>Interrompe o envio atual neste PC (preparação e entrega ao console).</summary>
+        public void CancelTransfer()
         {
-            if (!App.Config.ShowTransferProgress)
-                return;
+            Installer.CancelRequested = true;
+            Installer.Server?.CancelTransfers();
+            TransferMonitor.Instance.MarkCancelled();
+            Model?.ApplyTransfer(TransferMonitor.Instance);
+        }
 
-            var Now = DateTime.Now;
-            if (!Info.Completed && (Now - LastTransferProgressUpdate).TotalMilliseconds < 500)
-                return;
+        private void CancelTransferClick(object? sender, RoutedEventArgs e) => CancelTransfer();
 
-            LastTransferProgressUpdate = Now;
-            var ProgressStatus = FormatTransferProgress(Info);
-
-            App.Callback(() =>
+        private void OnTransferSessionEnded(TransferSession Session)
+        {
+            var Entry = new HistoryEntry
             {
-                if (App.Config.ShowTransferProgress)
-                    Status.Text = ProgressStatus;
+                Date = Session.Date,
+                Title = Session.Title,
+                TitleId = Session.TitleId,
+                Version = Session.Version,
+                Source = Session.Source,
+                Size = Session.TotalBytes,
+                Result = Session.Result switch
+                {
+                    TransferPhase.Finished => "COMPLETED",
+                    TransferPhase.Direct => "SENT",
+                    TransferPhase.Cancelled => "CANCELLED",
+                    _ => "FAILED"
+                }
+            };
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (Model == null)
+                    return;
+
+                Model.AddHistory(Entry);
+                HistoryStore.Save(Model.History);
             });
         }
 
-        private static string FormatTransferProgress(TransferProgressInfo Info)
+        private void TabHistoryClick(object? sender, RoutedEventArgs e)
         {
-            var Sent = TransferProgressInfo.FormatBytes(Info.BytesSent);
-            var Total = TransferProgressInfo.FormatBytes(Info.TotalBytes);
-
-            if (Info.Completed)
-                return $"Sent {Sent} / {Total}";
-
-            var Speed = TransferProgressInfo.FormatBytes(Info.BytesPerSecond);
-            return $"Sending {Sent} / {Total} ({Info.Percent:P1}) - {Speed}/s";
+            if (Model != null)
+                Model.ShowHistory = true;
         }
-        
+
+        private async void ClearHistoryClick(object? sender, RoutedEventArgs e)
+        {
+            if (Model == null || Model.History.Count == 0)
+                return;
+
+            if (await MessageBox.ShowAsync("Clear the whole send history?", "DirectPackageInstaller", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+
+            Model.ClearHistory();
+            HistoryStore.Save(Model.History);
+        }
+
+        private string SourceLabel()
+        {
+            if (InputType.HasFlag(Source.File))
+                return "FILE";
+
+            if (InputType.HasFlag(Source.RAR) || InputType.HasFlag(Source.SevenZip))
+                return "ARCHIVE";
+
+            if (InputType.HasFlag(Source.JSON))
+                return "MANIFEST";
+
+            return "URL";
+        }
+
         private async void RestartServer_OnClick(object? sender, RoutedEventArgs? e)
         {
             if (Model == null)

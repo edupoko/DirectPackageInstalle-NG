@@ -33,8 +33,13 @@ namespace DirectPackageInstaller.Tasks
 
         public static PayloadService Payload = new PayloadService();
 
+        /// <summary>Definido pela interface para interromper a preparação de um envio.</summary>
+        public static volatile bool CancelRequested = false;
+
         public static async Task<bool> PushPackage(Settings Config, Source InputType, Stream? PKGStream, string URL, IArchive? Decompressor, DecompressorHelperStream[]? DecompressorStreams, Func<string, Task> SetStatus, Func<string> GetStatus, bool Silent)
         {
+            CancelRequested = false;
+
             if (string.IsNullOrEmpty(Config.PSIP) || Config.PSIP == "0.0.0.0")
             {
                 await MessageBox.ShowAsync("PS IP not defined, please, type the PS IP in the Options Menu", "PS IP Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -48,6 +53,7 @@ namespace DirectPackageInstaller.Tasks
             }
 
             await StartServer(Config.PCIP);
+            Server?.ResumeTransfers();
 
             if (PKGStream is FileHostStream)
             {
@@ -151,6 +157,9 @@ namespace DirectPackageInstaller.Tasks
 
                     while (DecompressTask.SafeTotalDecompressed < LastResource)
                     {
+                        if (CancelRequested)
+                            return false;
+
                         await SetStatus($"Preloading Compressed PKG... ({(double)DecompressTask.SafeTotalDecompressed / LastResource:P})");
                         await Task.Delay(100);
                     }
@@ -169,6 +178,9 @@ namespace DirectPackageInstaller.Tasks
                     OriStatus = GetStatus();
                     while (CacheTask.SafeReadyLength < LastResource)
                     {
+                        if (CancelRequested)
+                            return false;
+
                         await SetStatus($"Preloading PKG... ({(double)(CacheTask.SafeReadyLength) / LastResource:P})");
                         await Task.Delay(100);
                     }

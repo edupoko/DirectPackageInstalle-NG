@@ -4,12 +4,22 @@ using System.Linq;
 using System.Threading;
 using Avalonia.Media.Imaging;
 using DirectPackageInstaller.Host;
+using ReactiveUI;
 
 namespace DirectPackageInstaller;
 
 /// <summary>Um pacote encontrado na pasta da biblioteca.</summary>
-public class LibraryItem
+public class LibraryItem : ReactiveObject
 {
+    private bool _isSent;
+
+    /// <summary>Já enviado ao console (consta no histórico).</summary>
+    public bool IsSent
+    {
+        get => _isSent;
+        set => this.RaiseAndSetIfChanged(ref _isSent, value);
+    }
+
     public string Path { get; init; } = "";
     public string FileName { get; init; } = "";
     public string Title { get; init; } = "";

@@ -36,6 +36,29 @@ namespace DirectPackageInstaller.Host
         public TransferProgressInfo? LastTransferProgress { get; private set; }
 
         public string LastRequestMode = null;
+
+        private readonly object SendLock = new object();
+        private readonly List<CancellationTokenSource> ActiveSends = new List<CancellationTokenSource>();
+
+        /// <summary>Quando verdadeiro, novos pedidos do console recebem 503 (envio cancelado).</summary>
+        public bool RefuseRequests { get; private set; }
+
+        /// <summary>Interrompe os envios em andamento e recusa novos pedidos até o próximo envio.</summary>
+        public void CancelTransfers()
+        {
+            RefuseRequests = true;
+
+            lock (SendLock)
+            {
+                foreach (var Token in ActiveSends.ToArray())
+                {
+                    try { Token.Cancel(); } catch { }
+                }
+            }
+        }
+
+        /// <summary>Volta a atender pedidos (chamado no início de um novo envio).</summary>
+        public void ResumeTransfers() => RefuseRequests = false;
         public Webserver Server { get; private set; }
 
         public DecompressService Decompress = new DecompressService();
@@ -111,6 +134,18 @@ namespace DirectPackageInstaller.Host
         async Task Process(HttpContext Context)
         {
             LastRequest = DateTime.Now;
+
+            if (RefuseRequests)
+            {
+                try
+                {
+                    Context.Response.StatusCode = 503;
+                    Context.Response.StatusDescription = "Service Unavailable";
+                    Context.Response.Send(true);
+                }
+                catch { }
+                return;
+            }
 
             int CID = ConnectionID++;
 
@@ -521,9 +556,20 @@ namespace DirectPackageInstaller.Host
                 }
 
                 var Token = new CancellationTokenSource();
-                await Context.Response.SendAsync(Context.Response.ContentLength.Value, Origin, Token.Token);
+                lock (SendLock)
+                    ActiveSends.Add(Token);
 
-                if (trackProgress)
+                try
+                {
+                    await Context.Response.SendAsync(Context.Response.ContentLength.Value, Origin, Token.Token);
+                }
+                finally
+                {
+                    lock (SendLock)
+                        ActiveSends.Remove(Token);
+                }
+
+                if (trackProgress && !Token.IsCancellationRequested)
                 {
                     ReportTransferProgress(new TransferProgressInfo(
                         Context.Request.Url.Full,

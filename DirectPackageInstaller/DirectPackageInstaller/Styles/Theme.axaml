@@ -153,6 +153,13 @@
         <Setter Property="BorderBrush" Value="#FFFFFF"/>
     </Style>
 
+    <!-- Barra de progresso: reta, branca sobre trilho cinza -->
+    <Style Selector="ProgressBar">
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Setter Property="Background" Value="{DynamicResource BorderStrongBrush}"/>
+    </Style>
+
     <!-- Campos: cantos retos -->
     <Style Selector="TextBox">
         <Setter Property="CornerRadius" Value="0"/>
