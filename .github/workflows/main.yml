@@ -21,11 +21,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install NDK
-        run: sdkmanager "ndk;24.0.8215888"
+      - name: Accept Android SDK licenses and install NDK
+        run: |
+          SDK_ROOT=/usr/local/lib/android/sdk
+          SDKMANAGER=$(ls -d $SDK_ROOT/cmdline-tools/*/bin/sdkmanager | tail -n 1)
+          yes | "$SDKMANAGER" --sdk_root=$SDK_ROOT --licenses > /dev/null
+          "$SDKMANAGER" --sdk_root=$SDK_ROOT "ndk;24.0.8215888"
 
       - uses: actions/setup-dotnet@v2
         with:
