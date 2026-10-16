@@ -1593,61 +1593,18 @@ namespace DirectPackageInstaller.Views
                 Toast.Show("Couldn't stop the download on the console", Stopped.Error, ToastKind.Warning, 8);
         }
 
-        private CancellationTokenSource? InstalledCts;
-        private DateTime LastInstalledCheck = DateTime.MinValue;
-
-        /// <summary>Intervalo mínimo entre consultas de "instalado", para não sobrecarregar o console.</summary>
-        private static readonly TimeSpan InstalledCheckInterval = TimeSpan.FromMinutes(5);
+        private readonly InstalledChecker Installed = new InstalledChecker();
 
         /// <summary>
-        /// Consulta ao console quais jogos da biblioteca estão instalados (uma consulta por Title ID,
-        /// em sequência e com pausa entre elas). Só roda com o RPI ativo.
+        /// Consulta ao console quais jogos da biblioteca estão instalados. Jogos já consultados nos
+        /// últimos minutos usam a resposta guardada; só os novos vão ao console. Requer o RPI ativo.
         /// </summary>
         public async Task RefreshInstalledFlags(bool Force = false)
         {
             if (Model == null || !Model.ConsoleHasRpi)
                 return;
 
-            if (!Force && DateTime.Now - LastInstalledCheck < InstalledCheckInterval)
-                return;
-
-            InstalledCts?.Cancel();
-            var Cts = InstalledCts = new CancellationTokenSource();
-            LastInstalledCheck = DateTime.Now;
-
-            var Ip = Model.PS4IP;
-            var Answers = new Dictionary<string, (bool Exists, long Size)>();
-
-            try
-            {
-                foreach (var Item in Model.LibraryItems.Where(x => x.Kind == "GAME" && RpiClient.IsValidTitleId(x.TitleId)).Take(300).ToList())
-                {
-                    if (Cts.IsCancellationRequested)
-                        return;
-
-                    if (!Answers.TryGetValue(Item.TitleId, out var Answer))
-                    {
-                        var Reply = await RpiClient.IsInstalled(Ip, Item.TitleId);
-
-                        if (!Reply.Ok)
-                        {
-                            //O console não respondeu: tenta de novo no próximo ciclo
-                            LastInstalledCheck = DateTime.MinValue;
-                            return;
-                        }
-
-                        Answer = Answers[Item.TitleId] = (Reply.Exists, Reply.Size);
-
-                        await Task.Delay(150, Cts.Token);
-                    }
-
-                    Item.Installed = Answer.Exists;
-                    Item.InstalledSize = Answer.Exists && Answer.Size > 0 ? TransferProgressInfo.FormatBytes(Answer.Size) : "";
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
+            await Installed.Refresh(Model.PS4IP, Model.LibraryItems.ToList(), Force);
         }
 
         private async void LibraryUninstallClick(object? sender, RoutedEventArgs e)
@@ -1692,6 +1649,7 @@ namespace DirectPackageInstaller.Views
 
             Item.Installed = false;
             Item.InstalledSize = "";
+            Installed.Remember(Item.TitleId, false);
 
             var Entry = new HistoryEntry
             {
