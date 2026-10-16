@@ -37,13 +37,13 @@
                                 <Path Classes="icon" Data="{StaticResource IconSettings}"/>
                             </Button>
                             <Border Width="1" Margin="6,9" Background="{DynamicResource BorderStrongBrush}"/>
-                            <Button Name="btnMinimize" Classes="window" Click="MinimizeClick" ToolTip.Tip="Minimize">
+                            <Button Name="btnMinimize" Classes="window wincontrol" Click="MinimizeClick" ToolTip.Tip="Minimize">
                                 <Path Classes="icon" Data="{StaticResource IconMinimize}"/>
                             </Button>
-                            <Button Name="btnMaximize" Classes="window" Click="MaximizeClick" ToolTip.Tip="Maximize">
+                            <Button Name="btnMaximize" Classes="window wincontrol" Click="MaximizeClick" ToolTip.Tip="Maximize">
                                 <Path Name="MaximizeGlyph" Classes="icon" Data="{StaticResource IconMaximize}"/>
                             </Button>
-                            <Button Name="btnClose" Classes="window close" Click="CloseClick" ToolTip.Tip="Close">
+                            <Button Name="btnClose" Classes="window wincontrol close" Click="CloseClick" ToolTip.Tip="Close">
                                 <Path Classes="icon" Data="{StaticResource IconClose}"/>
                             </Button>
                         </StackPanel>

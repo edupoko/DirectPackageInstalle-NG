@@ -90,6 +90,34 @@
         <Setter Property="Foreground" Value="#0B0B0D"/>
     </Style>
 
+    <!-- Controles da janela (minimizar, maximizar, fechar): hover cinza sutil e ícone branco -->
+    <Style Selector="Button.wincontrol:pointerover">
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+    <Style Selector="Button.wincontrol:pressed">
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+    <Style Selector="Button.wincontrol:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#3A3A3D"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+    <Style Selector="Button.wincontrol:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#2A2A2D"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+
+    <!-- Fechar: vermelho no hover e ao pressionar -->
+    <Style Selector="Button.wincontrol.close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#C42B1C"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+    <Style Selector="Button.wincontrol.close:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#9E2216"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+
     <!-- Campos: cantos retos -->
     <Style Selector="TextBox">
         <Setter Property="CornerRadius" Value="0"/>
