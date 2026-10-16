@@ -125,6 +125,103 @@ namespace DirectPackageInstaller.Views
 
         private void UpdateMenuVisibility() => MainMenu.IsVisible = App.IsSingleView || PackagesMenu.IsVisible;
 
+        // ---- Console: detecção na rede e estado da conexão ----
+
+        /// <summary>Pedido do indicador de console para abrir as configurações.</summary>
+        public event Action? SettingsRequested;
+
+        private bool ConsoleCheckRunning;
+
+        private void ConsoleStatusClick(object? sender, RoutedEventArgs e) => SettingsRequested?.Invoke();
+
+        /// <summary>Verifica o console configurado (GoldHEN, RPI, etaHEN) e atualiza o indicador.</summary>
+        public async Task RefreshConsoleStatus()
+        {
+            if (Model == null || ConsoleCheckRunning)
+                return;
+
+            ConsoleCheckRunning = true;
+
+            var Ip = Model.PS4IP;
+
+            try
+            {
+                Model.BeginConsoleCheck();
+
+                var Result = await ConsoleStatusChecker.CheckAsync(Ip);
+
+                //O IP pode ter mudado durante a verificação; o próximo ciclo cuida do novo
+                if (Model.PS4IP == Ip)
+                    Model.ApplyConsoleStatus(Result);
+            }
+            catch
+            {
+            }
+            finally
+            {
+                ConsoleCheckRunning = false;
+
+                if (Model.PS4IP != Ip)
+                    _ = RefreshConsoleStatus();
+            }
+        }
+
+        /// <summary>Procura consoles PS4/PS5 na rede local e lista os resultados nas configurações.</summary>
+        public async Task DetectConsoles()
+        {
+            if (Model == null || Model.IsScanningConsoles)
+                return;
+
+            Model.IsScanningConsoles = true;
+
+            try
+            {
+                var Found = await ConsoleScanner.ScanAsync(TimeSpan.FromSeconds(6));
+
+                Model.SetDetectedConsoles(Found);
+
+                if (Found.Count == 0)
+                {
+                    Toast.Show("No console found", "Make sure it is on and connected to the same network, then try again.", ToastKind.Warning, 8);
+                }
+                else if (Found.Count == 1 && string.IsNullOrWhiteSpace(Model.PS4IP))
+                {
+                    UseConsole(Found[0]);
+                }
+                else
+                {
+                    Toast.Show(Found.Count == 1 ? "Console found" : $"{Found.Count} consoles found", "Pick one in Settings → Network.", ToastKind.Success);
+                }
+            }
+            catch
+            {
+                Toast.Show("Network scan failed", "Check your network connection and try again.", ToastKind.Error);
+            }
+            finally
+            {
+                Model.IsScanningConsoles = false;
+            }
+        }
+
+        /// <summary>Define o console escolhido como destino dos envios.</summary>
+        public void UseConsole(DiscoveredConsole Found)
+        {
+            if (Model == null)
+                return;
+
+            Model.ConsoleType = Found.Type;
+            Model.PS4IP = Found.Ip;
+
+            //O IP do PC vem da interface em que o console respondeu
+            if (!string.IsNullOrWhiteSpace(Found.LocalIp) && Found.LocalIp != "0.0.0.0")
+                Model.PCIP = Found.LocalIp;
+
+            RestartServer_OnClick(null, null);
+            App.SaveSettings();
+
+            Toast.Show("Console selected", $"{Found.Title}  ·  {Found.Ip}", ToastKind.Success);
+        }
+
         /// <summary>Reinicia o servidor (usado pelo diálogo de configurações e pela barra de título).</summary>
         public void RestartServer() => RestartServer_OnClick(null, null);
 
@@ -366,6 +463,12 @@ namespace DirectPackageInstaller.Views
              };
              TransferTimer.Start();
 
+             //Revalida o console a cada 10 s (ligado, instalador ativo, rede)
+             var ConsoleTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
+             ConsoleTimer.Tick += (_, _) => _ = RefreshConsoleStatus();
+             ConsoleTimer.Start();
+             _ = RefreshConsoleStatus();
+
              Model.PropertyChanged += ModelOnPropertyChanged;
 
              //Com uma pasta configurada, abre direto na biblioteca
@@ -413,7 +516,13 @@ namespace DirectPackageInstaller.Views
                         if (Model.PS4IP == PS4IP.ToString() || await MessageBox.ShowAsync($"A new PS{VERSION} IP has been found ({PS4IP}), Update the PS{VERSION} IP?", "DirectPackageInstaller", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
                             return;
                     }
+                    var FirstConsole = string.IsNullOrEmpty(Model.PS4IP);
+
+                    Model.ConsoleType = $"PS{VERSION}";
                     Model.PS4IP = PS4IP.ToString();
+
+                    if (FirstConsole)
+                        Toast.Show("Console found", $"PS{VERSION}  ·  {PS4IP}", ToastKind.Success);
 
                     var NewPCIP = PCIP?.ToString() ?? IPHelper.FindLocalIP(PS4IP.ToString()) ?? "";
                     if (!string.IsNullOrWhiteSpace(NewPCIP) && NewPCIP != "0.0.0.0")
@@ -942,7 +1051,7 @@ namespace DirectPackageInstaller.Views
             //Notificações da biblioteca e do resumo do pacote não são configurações
             if (e.PropertyName is { } Name && Name != "LibraryPath"
                 && (Name.StartsWith("Library") || Name.StartsWith("Pkg") || Name == "HasPkg" || Name == "HasLibraryStatus" || Name == "ShowLibraryToolbar"
-                    || Name.StartsWith("Transfer") || Name.StartsWith("History") || Name == "CanCancelTransfer"
+                    || Name.StartsWith("Transfer") || Name.StartsWith("History") || Name.StartsWith("Console") || Name == "IsScanningConsoles" || Name == "CanCancelTransfer"
                     || Name == "ShowHistory" || Name == "ShowHistoryEmpty"
                     || Name == "ShowLibrary" || Name == "ShowPackage" || Name == "HasLibraryPath"
                     || Name == "ShowLibraryEmpty" || Name == "IsScanningLibrary"))
@@ -966,6 +1075,7 @@ namespace DirectPackageInstaller.Views
                     break;
                 case "PS4IP":
                     App.Config.PSIP = Model.PS4IP;
+                    _ = RefreshConsoleStatus();
                     break;
                 case "PCIP":
                     App.Config.PCIP = Model.PCIP;

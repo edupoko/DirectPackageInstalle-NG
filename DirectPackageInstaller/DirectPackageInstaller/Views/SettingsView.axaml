@@ -36,6 +36,28 @@
                         <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PCIP, Mode=TwoWay}" Watermark="192.168.0.20"/>
                     </Grid>
 
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,12,0,0">
+                        <TextBlock Grid.Column="0" Text="{Binding ConsoleScanText}" Classes="caption"
+                                   VerticalAlignment="Center" Margin="0"/>
+                        <Button Grid.Column="1" Name="btnDetectConsole" Content="DETECT CONSOLE" Padding="14,6"
+                                IsEnabled="{Binding !IsScanningConsoles}"/>
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding DetectedConsoles}" Margin="0,8,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1" Padding="12,10" Margin="0,0,0,6">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <StackPanel Grid.Column="0" Spacing="3" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Margin="0"/>
+                                            <TextBlock Text="{Binding Details}" Classes="caption" Margin="0"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Content="USE" Padding="16,6" Click="UseConsoleClick"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
                     <TextBlock Classes="section" Text="LIBRARY"/>
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBox Grid.Column="0" Text="{Binding LibraryPath, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
