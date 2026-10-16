@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
+using Avalonia.Media;
 using DirectPackageInstaller.Host;
 using ReactiveUI;
 
@@ -23,6 +24,15 @@ namespace DirectPackageInstaller.ViewModels
                     PCIP = IPHelper.FindLocalIP(value) ?? PCIP;
                 
                 this.RaisePropertyChanged();
+
+                if (_consoleType.Length > 0 && (value ?? "") != _consoleTypeIp)
+                {
+                    _consoleType = "";
+                    _consoleTypeSource = "";
+                    this.RaisePropertyChanged(nameof(ConsoleType));
+                }
+
+                RaiseConsoleStatusTexts();
             }
         }
         
@@ -117,6 +127,193 @@ namespace DirectPackageInstaller.ViewModels
 
         /// <summary>Notificações visíveis (ver Others/Toast.cs).</summary>
         public ObservableCollection<ToastItem> Toasts => Toast.Items;
+
+        // ---- Console: detecção na rede e estado da conexão ----
+
+        public ObservableCollection<DiscoveredConsole> DetectedConsoles { get; } = new ObservableCollection<DiscoveredConsole>();
+
+        private bool _isScanningConsoles;
+        public bool IsScanningConsoles
+        {
+            get => _isScanningConsoles;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _isScanningConsoles, value);
+                this.RaisePropertyChanged(nameof(ConsoleScanText));
+            }
+        }
+
+        public string ConsoleScanText => IsScanningConsoles
+            ? "Scanning the network..."
+            : DetectedConsoles.Count > 0 ? $"{DetectedConsoles.Count} found" : "Looks for consoles on your local network";
+
+        public void SetDetectedConsoles(IEnumerable<DiscoveredConsole> Consoles)
+        {
+            DetectedConsoles.Clear();
+
+            foreach (var Found in Consoles)
+                DetectedConsoles.Add(Found);
+
+            this.RaisePropertyChanged(nameof(ConsoleScanText));
+        }
+
+        // ---- Modelo do console (PS4 ou PS5) ----
+        //
+        // Ordem de confiança: escolha manual > descoberta Sony > serviços (GoldHEN é PS4,
+        // etaHEN é PS5) > último valor salvo para o mesmo IP.
+
+        private string _consoleType = "";
+        private string _consoleTypeIp = "";
+        private string _consoleTypeSource = "";
+
+        /// <summary>Tipo detectado automaticamente ("PS4", "PS5" ou vazio).</summary>
+        public string ConsoleType
+        {
+            get => _consoleType;
+            private set
+            {
+                this.RaiseAndSetIfChanged(ref _consoleType, value ?? "");
+                _consoleTypeIp = PS4IP ?? "";
+                RaiseConsoleStatusTexts();
+            }
+        }
+
+        /// <summary>Define o tipo detectado e de onde ele veio ("Sony discovery", "GoldHEN", "etaHEN", "saved").</summary>
+        public void SetConsoleType(string Type, string Source)
+        {
+            _consoleTypeSource = Source;
+            ConsoleType = Type;
+        }
+
+        private string _consoleModel = "";
+
+        /// <summary>Modelo escolhido manualmente ("PS4", "PS5") ou vazio para detectar sozinho.</summary>
+        public string ConsoleModel
+        {
+            get => _consoleModel;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _consoleModel, value ?? "");
+                this.RaisePropertyChanged(nameof(ConsoleModelIndex));
+                RaiseConsoleStatusTexts();
+            }
+        }
+
+        /// <summary>0 = detectar, 1 = PS4, 2 = PS5 (para o seletor das configurações).</summary>
+        public int ConsoleModelIndex
+        {
+            get => ConsoleModel switch { "PS4" => 1, "PS5" => 2, _ => 0 };
+            set => ConsoleModel = value switch { 1 => "PS4", 2 => "PS5", _ => "" };
+        }
+
+        /// <summary>O modelo que vale: o escolhido à mão ou, na falta dele, o detectado.</summary>
+        public string ConsoleTypeShown => ConsoleModel.Length > 0 ? ConsoleModel : ConsoleType;
+
+        public string ConsoleTypeNote
+        {
+            get
+            {
+                if (ConsoleModel.Length > 0)
+                    return $"Set manually: {ConsoleModel}";
+
+                if (ConsoleType.Length == 0)
+                    return "Model not detected yet";
+
+                return _consoleTypeSource switch
+                {
+                    "Sony discovery" => $"Detected: {ConsoleType} (console discovery)",
+                    "GoldHEN" or "etaHEN" => $"Detected: {ConsoleType} (from {_consoleTypeSource})",
+                    _ => $"Detected: {ConsoleType} (last known)"
+                };
+            }
+        }
+
+        /// <summary>Deduz o modelo pelos instaladores que responderam, se ainda não houver um tipo melhor.</summary>
+        private void InferConsoleType(ConsoleStatusResult Result)
+        {
+            if (Result.State != ConsoleState.Ready)
+                return;
+
+            var Inferred = Result.Services.Contains("etaHEN") ? "PS5" : Result.Services.Contains("GoldHEN") ? "PS4" : "";
+
+            if (Inferred.Length == 0)
+                return;
+
+            //A descoberta Sony é mais confiável que a dedução; só ela não é sobrescrita
+            if (_consoleType.Length == 0 || _consoleTypeSource != "Sony discovery")
+            {
+                if (_consoleType != Inferred || _consoleTypeSource == "saved")
+                    SetConsoleType(Inferred, Result.Services.Contains("etaHEN") ? "etaHEN" : "GoldHEN");
+            }
+        }
+
+        private ConsoleStatusResult _consoleStatus = new ConsoleStatusResult { State = ConsoleState.None };
+
+        public void ApplyConsoleStatus(ConsoleStatusResult Result)
+        {
+            _consoleStatus = Result;
+            InferConsoleType(Result);
+            RaiseConsoleStatusTexts();
+        }
+
+        /// <summary>Mostra "checking" só na primeira verificação, para o indicador não piscar a cada ciclo.</summary>
+        public void BeginConsoleCheck()
+        {
+            if (_consoleStatus.State is ConsoleState.None && !string.IsNullOrWhiteSpace(PS4IP))
+            {
+                _consoleStatus = new ConsoleStatusResult { State = ConsoleState.Checking };
+                RaiseConsoleStatusTexts();
+            }
+        }
+
+        private bool HasConsoleIp => !string.IsNullOrWhiteSpace(PS4IP) && PS4IP != "0.0.0.0";
+
+        public string ConsoleStatusText
+        {
+            get
+            {
+                if (!HasConsoleIp)
+                    return "NO CONSOLE";
+
+                var Prefix = ConsoleTypeShown.Length > 0 ? ConsoleTypeShown + "  ·  " : "";
+
+                return _consoleStatus.State switch
+                {
+                    ConsoleState.Ready => $"{Prefix}{PS4IP}  ·  {_consoleStatus.Services}",
+                    ConsoleState.NoInstaller => $"{Prefix}{PS4IP}  ·  no installer found",
+                    ConsoleState.Offline => $"{Prefix}{PS4IP}  ·  not reachable",
+                    _ => $"{Prefix}{PS4IP}  ·  checking..."
+                };
+            }
+        }
+
+        /// <summary>Verde = pronto, amarelo = responde sem instalador, vermelho = sem resposta, cinza = sem informação.</summary>
+        public IBrush ConsoleStatusBrush => new SolidColorBrush(Color.Parse(!HasConsoleIp ? "#9A9AA2" : _consoleStatus.State switch
+        {
+            ConsoleState.Ready => "#4ADE80",
+            ConsoleState.NoInstaller => "#FBBF24",
+            ConsoleState.Offline => "#F87171",
+            _ => "#9A9AA2"
+        }));
+
+        public string ConsoleStatusTip => !HasConsoleIp
+            ? "No console configured. Open Settings and press DETECT CONSOLE."
+            : (ConsoleTypeShown.Length > 0 ? ConsoleTypeNote + ". " : "") + _consoleStatus.State switch
+            {
+                ConsoleState.Ready => "Ready to send. Click to open the network settings.",
+                ConsoleState.NoInstaller => "The console answers, but GoldHEN, Remote Package Installer or etaHEN weren't found. Enable the payload server on the console.",
+                ConsoleState.Offline => "The console doesn't answer. Check that it is on and on the same network.",
+                _ => "Checking the console..."
+            };
+
+        private void RaiseConsoleStatusTexts()
+        {
+            this.RaisePropertyChanged(nameof(ConsoleTypeShown));
+            this.RaisePropertyChanged(nameof(ConsoleTypeNote));
+            this.RaisePropertyChanged(nameof(ConsoleStatusText));
+            this.RaisePropertyChanged(nameof(ConsoleStatusBrush));
+            this.RaisePropertyChanged(nameof(ConsoleStatusTip));
+        }
 
         // ---- Histórico de envios ----
 

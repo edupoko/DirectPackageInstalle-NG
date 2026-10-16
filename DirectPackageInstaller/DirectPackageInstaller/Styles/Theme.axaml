@@ -160,6 +160,21 @@
         <Setter Property="Background" Value="{DynamicResource BorderStrongBrush}"/>
     </Style>
 
+    <!-- Indicador de estado (console): sem contorno, realce discreto no hover e texto sempre claro -->
+    <Style Selector="Button.status">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="Button.status:pointerover">
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+    <Style Selector="Button.status:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#2A2A2D"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+
     <!-- Campos: cantos retos -->
     <Style Selector="TextBox">
         <Setter Property="CornerRadius" Value="0"/>

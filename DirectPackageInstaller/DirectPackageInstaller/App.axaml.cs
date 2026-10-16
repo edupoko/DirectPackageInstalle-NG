@@ -152,6 +152,9 @@ namespace DirectPackageInstaller
                 IniWriter.SetValue("EnableDHCP", Config.EnableDHCP.ToString());
                 IniWriter.SetValue("AutoSplitPKG", Config.AutoSplitPKG.ToString());
                 IniWriter.SetValue("LibraryPath", Config.LibraryPath ?? "");
+                IniWriter.SetValue("ConsoleModel", Config.ConsoleModel ?? "");
+                IniWriter.SetValue("ConsoleType", Config.ConsoleType ?? "");
+                IniWriter.SetValue("ConsoleTypeIp", Config.ConsoleTypeIp ?? "");
 
                 if (Config.PayloadPort != null)
                     IniWriter.SetValue("PayloadPort", Config.PayloadPort.ToString());

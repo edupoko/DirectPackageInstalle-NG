@@ -27,6 +27,9 @@ namespace DirectPackageInstaller.Views
             Settings.RestartServerRequested += () => View.RestartServer();
             Settings.DhcpToggleRequested += () => View.ToggleDhcpService();
             Settings.BrowseLibraryRequested += () => _ = View.ChooseLibraryFolder();
+            Settings.DetectConsoleRequested += () => _ = View.DetectConsoles();
+            Settings.UseConsoleRequested += Found => View.UseConsole(Found);
+            View.SettingsRequested += () => SettingsClick(null, new RoutedEventArgs());
 
             Opened += MainWindowOpened;
             Closing += MainWindowClosing;

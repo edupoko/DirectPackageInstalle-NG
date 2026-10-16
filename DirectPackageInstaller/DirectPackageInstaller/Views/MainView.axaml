@@ -101,11 +101,23 @@
         </Menu>
 
         <!-- Abas: Biblioteca (grade da pasta) e Pacote (detalhes do arquivo carregado) -->
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="12,12,12,12">
+        <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Margin="12,12,12,12">
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
             <Button Classes="tab" Classes.active="{Binding ShowLibrary}" Click="TabLibraryClick" Content="{Binding LibraryTabText}"/>
             <Button Classes="tab" Classes.active="{Binding ShowPackage}" Click="TabPackageClick" Content="PACKAGE"/>
             <Button Classes="tab" Classes.active="{Binding ShowHistory}" Click="TabHistoryClick" Content="{Binding HistoryTabText}"/>
-        </StackPanel>
+            </StackPanel>
+
+            <!-- Estado do console: abre as configurações de rede -->
+            <Button Grid.Column="1" Classes="status" Click="ConsoleStatusClick"
+                    ToolTip.Tip="{Binding ConsoleStatusTip}" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Ellipse Width="8" Height="8" Fill="{Binding ConsoleStatusBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding ConsoleStatusText}" Classes="caption" Margin="0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                </StackPanel>
+            </Button>
+        </Grid>
 
         <!-- Barra do Pacote: URL ou caminho e a ação principal -->
         <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Margin="12,0,12,12"
@@ -142,28 +154,33 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Width="280" Margin="0,0,12,12" Padding="12"
+                            <!-- Cartão de altura fixa: o botão fica sempre na base e as linhas de texto alinham entre cartões -->
+                            <Border Width="280" Height="150" Margin="0,0,12,12" Padding="12"
                                     BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1">
-                                <StackPanel Spacing="12">
-                                    <Grid ColumnDefinitions="64,*">
-                                        <Border Width="64" Height="64" ClipToBounds="True"
+                                <Grid RowDefinitions="*,Auto">
+                                    <Grid Grid.Row="0" ColumnDefinitions="64,*">
+                                        <Border Width="64" Height="64" VerticalAlignment="Top" ClipToBounds="True"
                                                 Background="{DynamicResource SurfaceHoverBrush}">
                                             <Image Source="{Binding Icon}" Stretch="UniformToFill"/>
                                         </Border>
-                                        <StackPanel Grid.Column="1" Margin="12,0,0,0" Spacing="3" VerticalAlignment="Center">
+                                        <StackPanel Grid.Column="1" Margin="12,0,0,0" Spacing="3" VerticalAlignment="Top">
+                                            <!-- Reserva sempre duas linhas para o título -->
                                             <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap"
-                                                       MaxLines="2" TextTrimming="CharacterEllipsis" Margin="0"/>
-                                            <TextBlock Text="{Binding Subtitle}" Classes="caption" Margin="0"/>
-                                            <TextBlock Text="{Binding Details}" Classes="caption" Margin="0"/>
-                                            <Border Classes="tag" HorizontalAlignment="Left" Margin="0,4,0,0"
-                                                    IsVisible="{Binding IsSent}" BorderBrush="#4ADE80">
-                                                <TextBlock Text="SENT" Foreground="#4ADE80"/>
-                                            </Border>
+                                                       MaxLines="2" MinHeight="40" TextTrimming="CharacterEllipsis"
+                                                       VerticalAlignment="Top" Margin="0"/>
+                                            <TextBlock Text="{Binding Subtitle}" Classes="caption" VerticalAlignment="Top" Margin="0"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="8" MinHeight="20">
+                                                <TextBlock Text="{Binding Details}" Classes="caption" VerticalAlignment="Center" Margin="0"/>
+                                                <Border Classes="tag" VerticalAlignment="Center"
+                                                        IsVisible="{Binding IsSent}" BorderBrush="#4ADE80">
+                                                    <TextBlock Text="SENT" Foreground="#4ADE80"/>
+                                                </Border>
+                                            </StackPanel>
                                         </StackPanel>
                                     </Grid>
-                                    <Button Content="OPEN" Classes="primary" HorizontalAlignment="Stretch"
-                                            Padding="0,8" Click="LibraryItemClick"/>
-                                </StackPanel>
+                                    <Button Grid.Row="1" Content="OPEN" Classes="primary" HorizontalAlignment="Stretch"
+                                            Margin="0,12,0,0" Padding="0,8" Click="LibraryItemClick"/>
+                                </Grid>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

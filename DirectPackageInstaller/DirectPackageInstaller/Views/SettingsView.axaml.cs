@@ -14,6 +14,8 @@ namespace DirectPackageInstaller.Views
         public event Action? RestartServerRequested;
         public event Action? DhcpToggleRequested;
         public event Action? BrowseLibraryRequested;
+        public event Action? DetectConsoleRequested;
+        public event Action<DiscoveredConsole>? UseConsoleRequested;
 
         public SettingsView()
         {
@@ -25,9 +27,16 @@ namespace DirectPackageInstaller.Views
             btnDoneSettings.Click += (_, _) => CloseRequested?.Invoke();
             btnRestartServer.Click += (_, _) => RestartServerRequested?.Invoke();
             btnBrowseLibrary.Click += (_, _) => BrowseLibraryRequested?.Invoke();
+            btnDetectConsole.Click += (_, _) => DetectConsoleRequested?.Invoke();
 
             // O DHCP pede confirmação e inicia o serviço; a MainView alterna a propriedade.
             cbDhcp.Click += (_, _) => DhcpToggleRequested?.Invoke();
+        }
+
+        private void UseConsoleClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            if ((sender as Control)?.DataContext is DiscoveredConsole Found)
+                UseConsoleRequested?.Invoke(Found);
         }
     }
 }

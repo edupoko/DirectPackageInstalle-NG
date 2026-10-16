@@ -18,6 +18,13 @@ namespace DirectPackageInstaller
 
         public string LibraryPath;
 
+        /// <summary>Modelo escolhido manualmente: "PS4", "PS5" ou vazio (detectar automaticamente).</summary>
+        public string ConsoleModel;
+
+        /// <summary>Último modelo detectado e o IP a que ele se refere.</summary>
+        public string ConsoleType;
+        public string ConsoleTypeIp;
+
         public int? PayloadPort;
 
         public bool UseAllDebrid;
