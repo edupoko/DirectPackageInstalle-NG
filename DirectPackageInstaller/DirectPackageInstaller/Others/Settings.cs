@@ -30,8 +30,6 @@ namespace DirectPackageInstaller
 
         public bool EnableDHCP;
 
-        public bool EnableCNL;
-
         public bool ShowError;
         public bool ShowTransferProgress;
 

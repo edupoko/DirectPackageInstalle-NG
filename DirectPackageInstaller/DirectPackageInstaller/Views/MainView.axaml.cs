@@ -35,7 +35,6 @@ namespace DirectPackageInstaller.Views
     public partial class MainView : UserControl
     {
 
-        public CNLServer CNL = new CNLServer();
         public DHCPHost? DHCP = null;
         public INetworkManagement? AdapterHelper = null;
 
@@ -85,7 +84,6 @@ namespace DirectPackageInstaller.Views
             btnDebirdLinkEnabled = this.Find<MenuItem>("btnDebirdLinkEnabled");
             btnSegmentedDownload = this.Find<MenuItem>("btnSegmentedDownload");
             btnTransferProgress = this.Find<MenuItem>("btnTransferProgress");
-            btnCNLService = this.Find<MenuItem>("btnCNLService");
             btnDHCPService = this.Find<MenuItem>("btnDHCPService");
             btnExit = this.Find<MenuItem>("btnExit");
             btnLoad = this.Find<Button>("btnLoad");
@@ -98,7 +96,6 @@ namespace DirectPackageInstaller.Views
             btnDebirdLinkEnabled.Click += BtnDebirdLinkEnabledOnClick;
             btnSegmentedDownload.Click += BtnSegmentedDownloadOnClick;
             btnTransferProgress.Click += BtnTransferProgressOnClick;
-            btnCNLService.Click += BtnCNLServiceOnClick;
             btnDHCPService.Click += BtnDHCPServiceOnClick;
 
             btnLoad.Click += BtnLoadOnClick;
@@ -108,7 +105,6 @@ namespace DirectPackageInstaller.Views
             btnExit.Click += btnExitOnClick;
             btnExit.IsVisible = App.IsAndroid;
             
-            CNL.OnLinksReceived = OnLinksReceived;
             PS4Server.GlobalTransferProgressChanged += ServerOnTransferProgressChanged;
             
             PreviewGrid.PropertyChanged += PreviewGridOnPropertyChanged;
@@ -280,7 +276,6 @@ namespace DirectPackageInstaller.Views
                 App.Config.UseDebridLink = IniReader.GetBooleanValue("UseDebridLink");
                 App.Config.RealDebridApiKey = IniReader.GetValue("RealDebridApiKey");
                 App.Config.DebridLinkApiKey = IniReader.GetValue("DebridLinkApiKey");
-                App.Config.EnableCNL = IniReader.GetBooleanValue("EnableCNL");
                 App.Config.ShowError = IniReader.GetBooleanValue("ShowError");
                 var ShowTransferProgress = IniReader.GetValue("ShowTransferProgress");
                 App.Config.ShowTransferProgress = string.IsNullOrWhiteSpace(ShowTransferProgress) || IniReader.GetBooleanValue("ShowTransferProgress");
@@ -311,7 +306,6 @@ namespace DirectPackageInstaller.Views
                     ProxyDownload = true,
                     SegmentedDownload = !App.IsAndroid,
                     UseAllDebrid = false,
-                    EnableCNL = true,
                     ShowError = false,
                     ShowTransferProgress = true,
                     SkipUpdateCheck = false,
@@ -334,7 +328,6 @@ namespace DirectPackageInstaller.Views
             }
 
             Model.DHCPService = App.Config.EnableDHCP;
-            Model.CNLService = App.Config.EnableCNL;
             Model.ProxyMode = App.Config.ProxyDownload;
             Model.ShowTransferProgress = App.Config.ShowTransferProgress;
             Model.UseAllDebrid = App.Config.UseAllDebrid;
@@ -360,21 +353,6 @@ namespace DirectPackageInstaller.Views
 
             if (!string.IsNullOrEmpty(App.Config.PSIP))
                 await Installer.StartServer(App.Config.PCIP);
-
-             if (App.Config.EnableCNL)
-             {
-                 try
-                 {
-                     CNL.Server.Start();
-                 }
-                 catch
-                 {
-                     App.Callback(async () =>
-                     {
-                         await MessageBox.ShowAsync("Failed to start the CNL Server\nMaybe another process is already listening?", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                     });
-                 }
-             }
 
              Model.SetHistory(HistoryStore.Load());
              TransferMonitor.Instance.SessionEnded += OnTransferSessionEnded;
@@ -1013,27 +991,6 @@ namespace DirectPackageInstaller.Views
                 case "DHCPService":
                     App.Config.EnableDHCP = Model.DHCPService;
                     break;
-                case "CNLService":
-                    App.Config.EnableCNL = Model.CNLService;
-
-                    try
-                    {
-                        if (Model.CNLService && !CNL.Server.IsListening)
-                            CNL.Server.Start();
-                        else if (!Model.CNLService)
-                            CNL.Server.Stop();
-                    }
-                    catch
-                    {
-                        if (Model.CNLService)
-                        {
-                            App.Callback(async () =>
-                            {
-                                await MessageBox.ShowAsync("Failed to start the CNL Server\nMaybe another process is already listening?", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            });
-                        }
-                    }
-                    break;
                 case "CurrentURL":
                     UrlChanged(Model.CurrentURL);
                     return;
@@ -1043,14 +1000,6 @@ namespace DirectPackageInstaller.Views
                 App.SaveSettings();
         }
 
-        private void BtnCNLServiceOnClick(object? sender, RoutedEventArgs e)
-        {
-            if (Model == null)
-                return;
-            
-            Model.CNLService = !Model.CNLService;
-        }
-        
         private void BtnSegmentedDownloadOnClick(object? sender, RoutedEventArgs e)
         {
             if (Model == null)
@@ -1319,22 +1268,6 @@ namespace DirectPackageInstaller.Views
 
             tbURL.Text = Entry;
             App.Callback(() => BtnLoadOnClick(Entry, null));
-        }
-
-        private void OnLinksReceived((string[] Links, string Password) Info)
-        {
-            if (!Dispatcher.UIThread.CheckAccess())
-            {
-                App.Callback(() => OnLinksReceived(Info));
-                return;
-            }
-            
-            _ = URLAnalyzer.Analyze(Info.Links, false);
-
-            Model!.ShowLibrary = false;
-            Model.ShowHistory = false;
-            tbURL.Text = Info.Links.First();
-            App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
         }
 
         private void UrlChanged(string Url)

@@ -108,13 +108,6 @@ namespace DirectPackageInstaller.ViewModels
             set => this.RaiseAndSetIfChanged(ref _useDebridLink, value);
         }
 
-        private bool _CNLService = false;
-        public bool CNLService 
-        {
-            get => _CNLService;
-            set => this.RaiseAndSetIfChanged(ref _CNLService, value);
-        }
-
         private bool _DHCPService = false;
         public bool DHCPService
         {
