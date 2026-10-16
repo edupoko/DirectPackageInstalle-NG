@@ -112,11 +112,6 @@ namespace DirectPackageInstaller.Views
             
             PreviewGrid.PropertyChanged += PreviewGridOnPropertyChanged;
 
-            //A tela inteira aceita soltar, inclusive as áreas sem fundo próprio
-            DragDrop.SetAllowDrop(this, true);
-
-            AddHandler(DragDrop.DragOverEvent, DragOver);
-            AddHandler(DragDrop.DropEvent, DropEventEvent);
 
             btnDHCPService.IsVisible = App.IsWindows;
 
@@ -1167,67 +1162,6 @@ namespace DirectPackageInstaller.Views
             tbURL.Text = Info.Links.First();
             App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
         }
-
-        private void DropEventEvent(object? sender, DragEventArgs e)
-        {
-            e.Handled = true;
-
-            //Arquivos primeiro: alguns gerenciadores (ex.: Dolphin) enviam o arquivo
-            //arrastado também como texto, e o ramo de texto só aceita links http.
-            if (e.Data.Contains(DataFormats.FileNames))
-            {
-                var Files = e.Data.GetFileNames()?.ToArray() ?? Array.Empty<string>();
-
-                if (Files.Length > 0)
-                {
-                    BatchList.Clear();
-                    BatchList.AddRange(Files.Select(x => (x, Path.GetFileName(x))));
-
-                    ListEntries(Files);
-
-                    App.Callback(() => {
-                        Model.CurrentURL = Files.First();
-                        App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
-                    });
-                    return;
-                }
-            }
-
-            if (e.Data.Contains(DataFormats.Text))
-            {
-                var Links = e.Data.GetText()!.Split('\n', '\r')
-                    .Where(x => !string.IsNullOrEmpty(x.Trim()) && x.Trim().StartsWith("http"))
-                    .Select(x => x.Trim()).ToArray();
-
-                if (Links.Length == 0)
-                    return;
-
-                _ = URLAnalyzer.Analyze(Links, false);
-
-                App.Callback(() => {
-                    Model.CurrentURL = Links.First();
-                    App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
-                });
-            }
-        }
-
-        private void DragOver(object? sender, DragEventArgs e)
-        {
-            //O arquivo nunca é movido nem apagado: sempre responde como cópia, mesmo
-            //quando o gerenciador de arquivos propõe "mover" (padrão do Dolphin).
-            if (e.Data.Contains(DataFormats.Text) || e.Data.Contains(DataFormats.FileNames))
-                e.DragEffects = DragDropEffects.Copy;
-            else
-                e.DragEffects = DragDropEffects.None;
-
-            e.Handled = true;
-        }
-
-        /// <summary>Usado pela janela para aceitar arquivos soltos fora da MainView (barra de título).</summary>
-        public void HandleDragOver(DragEventArgs e) => DragOver(null, e);
-
-        /// <summary>Usado pela janela para aceitar arquivos soltos fora da MainView (barra de título).</summary>
-        public void HandleDrop(DragEventArgs e) => DropEventEvent(null, e);
 
         private void UrlChanged(string Url)
         {

@@ -10,7 +10,7 @@
   <Design.DataContext>
     <viewModels:MainViewModel />
   </Design.DataContext>
-    <Grid DragDrop.AllowDrop="True" Name="MainViewGrid" Background="Transparent">
+    <Grid Name="MainViewGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
             <RowDefinition Height="40"/>
@@ -129,7 +129,7 @@
             <Grid Grid.Column="2" Name="PkgInfoPanel">
                 <StackPanel IsVisible="{Binding !HasPkg}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
                     <TextBlock Text="NO PACKAGE LOADED" Classes="caption" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Drop a .pkg here, paste a URL or press Open"
+                    <TextBlock Text="Paste a URL or press Open to choose a .pkg file"
                                Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
                 </StackPanel>
 
