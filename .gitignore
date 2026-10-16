@@ -301,3 +301,6 @@ $RECYCLE.BIN/
 [Pp]ackages/
 [Oo]bj/
 [Bb]in/
+
+# Runtime cache (gerado em execução, não versionar)
+.cache/
