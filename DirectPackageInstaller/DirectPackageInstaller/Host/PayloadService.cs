@@ -114,7 +114,7 @@ namespace DirectPackageInstaller.Host
             await SendTask.Task;
 
             if (!Silent)
-                await MessageBox.ShowAsync("Package Sent!", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Toast.Show("Package sent", Installer.CurrentPKG.FriendlyName ?? "", ToastKind.Success);
 
             return true;
         }

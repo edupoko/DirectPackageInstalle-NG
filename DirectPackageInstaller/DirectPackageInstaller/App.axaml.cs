@@ -144,7 +144,6 @@ namespace DirectPackageInstaller
                 IniWriter.SetValue("RealDebridApiKey", Config.RealDebridApiKey);
                 IniWriter.SetValue("UseDebridLink", Config.UseDebridLink.ToString());
                 IniWriter.SetValue("DebridLinkApiKey", Config.DebridLinkApiKey);
-                IniWriter.SetValue("EnableCNL", Config.EnableCNL.ToString());
                 IniWriter.SetValue("Concurrency", SegmentedStream.DefaultConcurrency.ToString());
                 IniWriter.SetValue("ShowError", Config.ShowError.ToString());
                 IniWriter.SetValue("ShowTransferProgress", Config.ShowTransferProgress.ToString());

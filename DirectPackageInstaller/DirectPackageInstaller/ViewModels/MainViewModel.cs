@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
+using DirectPackageInstaller.Host;
 using ReactiveUI;
 
 namespace DirectPackageInstaller.ViewModels
@@ -107,18 +108,144 @@ namespace DirectPackageInstaller.ViewModels
             set => this.RaiseAndSetIfChanged(ref _useDebridLink, value);
         }
 
-        private bool _CNLService = false;
-        public bool CNLService 
-        {
-            get => _CNLService;
-            set => this.RaiseAndSetIfChanged(ref _CNLService, value);
-        }
-
         private bool _DHCPService = false;
         public bool DHCPService
         {
             get => _DHCPService;
             set => this.RaiseAndSetIfChanged(ref _DHCPService, value);
+        }
+
+        /// <summary>Notificações visíveis (ver Others/Toast.cs).</summary>
+        public ObservableCollection<ToastItem> Toasts => Toast.Items;
+
+        // ---- Histórico de envios ----
+
+        public ObservableCollection<HistoryEntry> History { get; } = new ObservableCollection<HistoryEntry>();
+
+        public string HistoryTabText => History.Count > 0 ? $"HISTORY  {History.Count}" : "HISTORY";
+
+        public bool ShowHistoryEmpty => History.Count == 0;
+
+        public void SetHistory(IEnumerable<HistoryEntry> Entries)
+        {
+            History.Clear();
+
+            foreach (var Entry in Entries)
+                History.Add(Entry);
+
+            HistoryChanged();
+        }
+
+        public void AddHistory(HistoryEntry Entry)
+        {
+            History.Insert(0, Entry);
+            HistoryChanged();
+        }
+
+        public void ClearHistory()
+        {
+            History.Clear();
+            HistoryChanged();
+        }
+
+        private void HistoryChanged()
+        {
+            this.RaisePropertyChanged(nameof(HistoryTabText));
+            this.RaisePropertyChanged(nameof(ShowHistoryEmpty));
+            UpdateSentFlags();
+        }
+
+        /// <summary>Marca na biblioteca o que já foi enviado ao console.</summary>
+        private void UpdateSentFlags()
+        {
+            foreach (var Item in _libraryAll)
+            {
+                Item.IsSent = Item.TitleId.Length > 0 && History.Any(x => x.Delivered
+                    && x.TitleId == Item.TitleId && x.Version == Item.Version);
+            }
+        }
+
+        // ---- Estado do envio atual (barra de estado) ----
+
+        private bool _transferVisible;
+        public bool TransferVisible
+        {
+            get => _transferVisible;
+            private set => this.RaiseAndSetIfChanged(ref _transferVisible, value);
+        }
+
+        private bool _canCancelTransfer;
+        public bool CanCancelTransfer
+        {
+            get => _canCancelTransfer;
+            private set => this.RaiseAndSetIfChanged(ref _canCancelTransfer, value);
+        }
+
+        private bool _transferShowBar;
+        public bool TransferShowBar
+        {
+            get => _transferShowBar;
+            private set => this.RaiseAndSetIfChanged(ref _transferShowBar, value);
+        }
+
+        private bool _transferIndeterminate;
+        public bool TransferIndeterminate
+        {
+            get => _transferIndeterminate;
+            private set => this.RaiseAndSetIfChanged(ref _transferIndeterminate, value);
+        }
+
+        private double _transferProgress;
+        public double TransferProgress
+        {
+            get => _transferProgress;
+            private set => this.RaiseAndSetIfChanged(ref _transferProgress, value);
+        }
+
+        private string _transferText = "";
+        public string TransferText
+        {
+            get => _transferText;
+            private set => this.RaiseAndSetIfChanged(ref _transferText, value);
+        }
+
+        public void ApplyTransfer(TransferMonitor Monitor)
+        {
+            var Phase = Monitor.Phase;
+
+            TransferVisible = Phase != TransferPhase.Idle;
+            CanCancelTransfer = Monitor.IsActive;
+            TransferIndeterminate = Phase is TransferPhase.Preparing or TransferPhase.Waiting;
+            TransferShowBar = ShowTransferProgress && Monitor.IsActive;
+            TransferProgress = Monitor.Progress;
+            TransferText = Phase switch
+            {
+                TransferPhase.Preparing => "Preparing...",
+                TransferPhase.Waiting => "Sent. Waiting for the console to start the download...",
+                TransferPhase.Transferring => DescribeTransfer(Monitor),
+                TransferPhase.Finished => "Download finished. The console is installing it; check its notifications.",
+                TransferPhase.Direct => "Sent. The console downloads straight from the source; progress isn't visible here.",
+                TransferPhase.Failed => "Failed to send the package.",
+                TransferPhase.Cancelled => "Cancelled on this PC. If the console already queued it, remove it in the console's notifications.",
+                _ => ""
+            };
+        }
+
+        private static string DescribeTransfer(TransferMonitor Monitor)
+        {
+            var Text = $"{Monitor.Progress:P0}  ·  {TransferProgressInfo.FormatBytes(Monitor.ServedBytes)} / {TransferProgressInfo.FormatBytes(Monitor.TotalBytes)}";
+
+            if (Monitor.BytesPerSecond >= 1)
+                Text += $"  ·  {TransferProgressInfo.FormatBytes(Monitor.BytesPerSecond)}/s";
+
+            if (Monitor.Eta is { } Eta)
+            {
+                Text += Eta.TotalHours >= 1
+                    ? $"  ·  {(int)Eta.TotalHours}h {Eta.Minutes:00}m left"
+                    : $"  ·  {Eta.Minutes}m {Eta.Seconds:00}s left";
+            }
+
+            return Text;
         }
 
         // ---- Biblioteca: pasta fixa com os PKGs organizados em grade ----
@@ -156,13 +283,37 @@ namespace DirectPackageInstaller.ViewModels
             get => _showLibrary;
             set
             {
+                if (value && _showHistory)
+                {
+                    _showHistory = false;
+                    this.RaisePropertyChanged(nameof(ShowHistory));
+                }
+
                 this.RaiseAndSetIfChanged(ref _showLibrary, value);
                 this.RaisePropertyChanged(nameof(ShowPackage));
                 this.RaisePropertyChanged(nameof(ShowLibraryToolbar));
             }
         }
 
-        public bool ShowPackage => !_showLibrary;
+        private bool _showHistory = false;
+        public bool ShowHistory
+        {
+            get => _showHistory;
+            set
+            {
+                if (value && _showLibrary)
+                {
+                    _showLibrary = false;
+                    this.RaisePropertyChanged(nameof(ShowLibrary));
+                    this.RaisePropertyChanged(nameof(ShowLibraryToolbar));
+                }
+
+                this.RaiseAndSetIfChanged(ref _showHistory, value);
+                this.RaisePropertyChanged(nameof(ShowPackage));
+            }
+        }
+
+        public bool ShowPackage => !_showLibrary && !_showHistory;
 
         private bool _isScanningLibrary = false;
         public bool IsScanningLibrary
@@ -225,6 +376,9 @@ namespace DirectPackageInstaller.ViewModels
 
         public void AddLibraryItem(LibraryItem Item)
         {
+            Item.IsSent = Item.TitleId.Length > 0 && History.Any(x => x.Delivered
+                && x.TitleId == Item.TitleId && x.Version == Item.Version);
+
             _libraryAll.Add(Item);
 
             if (MatchesSearch(Item))

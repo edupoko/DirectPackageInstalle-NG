@@ -35,7 +35,6 @@ namespace DirectPackageInstaller.Views
     public partial class MainView : UserControl
     {
 
-        public CNLServer CNL = new CNLServer();
         public DHCPHost? DHCP = null;
         public INetworkManagement? AdapterHelper = null;
 
@@ -58,7 +57,6 @@ namespace DirectPackageInstaller.Views
 
         private DecompressorHelperStream[]? CurrentDecompressorVolumes = null;
 
-        private DateTime LastTransferProgressUpdate = DateTime.MinValue;
 
         public MainViewModel? Model => (MainViewModel?)DataContext;
         
@@ -86,7 +84,6 @@ namespace DirectPackageInstaller.Views
             btnDebirdLinkEnabled = this.Find<MenuItem>("btnDebirdLinkEnabled");
             btnSegmentedDownload = this.Find<MenuItem>("btnSegmentedDownload");
             btnTransferProgress = this.Find<MenuItem>("btnTransferProgress");
-            btnCNLService = this.Find<MenuItem>("btnCNLService");
             btnDHCPService = this.Find<MenuItem>("btnDHCPService");
             btnExit = this.Find<MenuItem>("btnExit");
             btnLoad = this.Find<Button>("btnLoad");
@@ -99,7 +96,6 @@ namespace DirectPackageInstaller.Views
             btnDebirdLinkEnabled.Click += BtnDebirdLinkEnabledOnClick;
             btnSegmentedDownload.Click += BtnSegmentedDownloadOnClick;
             btnTransferProgress.Click += BtnTransferProgressOnClick;
-            btnCNLService.Click += BtnCNLServiceOnClick;
             btnDHCPService.Click += BtnDHCPServiceOnClick;
 
             btnLoad.Click += BtnLoadOnClick;
@@ -109,7 +105,6 @@ namespace DirectPackageInstaller.Views
             btnExit.Click += btnExitOnClick;
             btnExit.IsVisible = App.IsAndroid;
             
-            CNL.OnLinksReceived = OnLinksReceived;
             PS4Server.GlobalTransferProgressChanged += ServerOnTransferProgressChanged;
             
             PreviewGrid.PropertyChanged += PreviewGridOnPropertyChanged;
@@ -218,8 +213,11 @@ namespace DirectPackageInstaller.Views
 
         private void TabPackageClick(object? sender, RoutedEventArgs e)
         {
-            if (Model != null)
-                Model.ShowLibrary = false;
+            if (Model == null)
+                return;
+
+            Model.ShowLibrary = false;
+            Model.ShowHistory = false;
         }
 
         private void LibraryChooseClick(object? sender, RoutedEventArgs e) => _ = ChooseLibraryFolder();
@@ -232,6 +230,7 @@ namespace DirectPackageInstaller.Views
                 return;
 
             Model.ShowLibrary = false;
+            Model.ShowHistory = false;
 
             //Já carregado: só mostra os detalhes (carregar de novo acionaria a instalação)
             if (Model.CurrentURL == Item.Path && InputType != Source.NONE)
@@ -277,7 +276,6 @@ namespace DirectPackageInstaller.Views
                 App.Config.UseDebridLink = IniReader.GetBooleanValue("UseDebridLink");
                 App.Config.RealDebridApiKey = IniReader.GetValue("RealDebridApiKey");
                 App.Config.DebridLinkApiKey = IniReader.GetValue("DebridLinkApiKey");
-                App.Config.EnableCNL = IniReader.GetBooleanValue("EnableCNL");
                 App.Config.ShowError = IniReader.GetBooleanValue("ShowError");
                 var ShowTransferProgress = IniReader.GetValue("ShowTransferProgress");
                 App.Config.ShowTransferProgress = string.IsNullOrWhiteSpace(ShowTransferProgress) || IniReader.GetBooleanValue("ShowTransferProgress");
@@ -308,7 +306,6 @@ namespace DirectPackageInstaller.Views
                     ProxyDownload = true,
                     SegmentedDownload = !App.IsAndroid,
                     UseAllDebrid = false,
-                    EnableCNL = true,
                     ShowError = false,
                     ShowTransferProgress = true,
                     SkipUpdateCheck = false,
@@ -331,7 +328,6 @@ namespace DirectPackageInstaller.Views
             }
 
             Model.DHCPService = App.Config.EnableDHCP;
-            Model.CNLService = App.Config.EnableCNL;
             Model.ProxyMode = App.Config.ProxyDownload;
             Model.ShowTransferProgress = App.Config.ShowTransferProgress;
             Model.UseAllDebrid = App.Config.UseAllDebrid;
@@ -358,20 +354,17 @@ namespace DirectPackageInstaller.Views
             if (!string.IsNullOrEmpty(App.Config.PSIP))
                 await Installer.StartServer(App.Config.PCIP);
 
-             if (App.Config.EnableCNL)
+             Model.SetHistory(HistoryStore.Load());
+             TransferMonitor.Instance.SessionEnded += OnTransferSessionEnded;
+
+             //Atualiza a barra de estado do envio (velocidade, conclusão, modo direto)
+             var TransferTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+             TransferTimer.Tick += (_, _) =>
              {
-                 try
-                 {
-                     CNL.Server.Start();
-                 }
-                 catch
-                 {
-                     App.Callback(async () =>
-                     {
-                         await MessageBox.ShowAsync("Failed to start the CNL Server\nMaybe another process is already listening?", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                     });
-                 }
-             }
+                 TransferMonitor.Instance.Tick();
+                 Model?.ApplyTransfer(TransferMonitor.Instance);
+             };
+             TransferTimer.Start();
 
              Model.PropertyChanged += ModelOnPropertyChanged;
 
@@ -949,6 +942,8 @@ namespace DirectPackageInstaller.Views
             //Notificações da biblioteca e do resumo do pacote não são configurações
             if (e.PropertyName is { } Name && Name != "LibraryPath"
                 && (Name.StartsWith("Library") || Name.StartsWith("Pkg") || Name == "HasPkg" || Name == "HasLibraryStatus" || Name == "ShowLibraryToolbar"
+                    || Name.StartsWith("Transfer") || Name.StartsWith("History") || Name == "CanCancelTransfer"
+                    || Name == "ShowHistory" || Name == "ShowHistoryEmpty"
                     || Name == "ShowLibrary" || Name == "ShowPackage" || Name == "HasLibraryPath"
                     || Name == "ShowLibraryEmpty" || Name == "IsScanningLibrary"))
                 return;
@@ -996,27 +991,6 @@ namespace DirectPackageInstaller.Views
                 case "DHCPService":
                     App.Config.EnableDHCP = Model.DHCPService;
                     break;
-                case "CNLService":
-                    App.Config.EnableCNL = Model.CNLService;
-
-                    try
-                    {
-                        if (Model.CNLService && !CNL.Server.IsListening)
-                            CNL.Server.Start();
-                        else if (!Model.CNLService)
-                            CNL.Server.Stop();
-                    }
-                    catch
-                    {
-                        if (Model.CNLService)
-                        {
-                            App.Callback(async () =>
-                            {
-                                await MessageBox.ShowAsync("Failed to start the CNL Server\nMaybe another process is already listening?", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            });
-                        }
-                    }
-                    break;
                 case "CurrentURL":
                     UrlChanged(Model.CurrentURL);
                     return;
@@ -1026,14 +1000,6 @@ namespace DirectPackageInstaller.Views
                 App.SaveSettings();
         }
 
-        private void BtnCNLServiceOnClick(object? sender, RoutedEventArgs e)
-        {
-            if (Model == null)
-                return;
-            
-            Model.CNLService = !Model.CNLService;
-        }
-        
         private void BtnSegmentedDownloadOnClick(object? sender, RoutedEventArgs e)
         {
             if (Model == null)
@@ -1090,6 +1056,10 @@ namespace DirectPackageInstaller.Views
                 return false;
             }
 
+            var Pkg = Installer.CurrentPKG;
+            var PkgVersion = Pkg.Params?.FirstOrDefault(x => x.Name == "VERSION")?.Value ?? "";
+            TransferMonitor.Instance.Begin(Pkg.FriendlyName ?? "", Pkg.TitleID ?? "", PkgVersion, SourceLabel(), Pkg.PackageSize);
+
             var OriStatus = Status.Text;
             btnLoad.Content = "Pushing...";
             PackagesMenu.IsEnabled = false;
@@ -1108,7 +1078,12 @@ namespace DirectPackageInstaller.Views
                     }
                 }
 
-                return await Installer.PushPackage(App.Config, InputType, PKGStream!, URL, CurrentDecompressor, CurrentDecompressorVolumes, SetStatus, () => Status.Text, Silent);
+                var Sent = await Installer.PushPackage(App.Config, InputType, PKGStream!, URL, CurrentDecompressor, CurrentDecompressorVolumes, SetStatus, () => Status.Text, Silent);
+
+                if (Sent)
+                    TransferMonitor.Instance.MarkSent();
+
+                return Sent;
             }
             catch
             {
@@ -1116,6 +1091,12 @@ namespace DirectPackageInstaller.Views
             }
             finally
             {
+                //Saiu sem enviar (console offline, erro, cancelado na preparação)
+                if (TransferMonitor.Instance.Phase == TransferPhase.Preparing)
+                    TransferMonitor.Instance.MarkFailed();
+
+                Model?.ApplyTransfer(TransferMonitor.Instance);
+
                 await SetStatus(OriStatus);
                 PackagesMenu.IsEnabled = true;
                 btnLoad.IsEnabled = true;
@@ -1205,7 +1186,7 @@ namespace DirectPackageInstaller.Views
                 }
             }
 
-            await MessageBox.ShowAsync("Packages Sent!", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Toast.Show("Packages sent", "All packages in the list were sent to the console", ToastKind.Success);
         }
 
         private static int PS4IdleSeconds()
@@ -1287,21 +1268,6 @@ namespace DirectPackageInstaller.Views
 
             tbURL.Text = Entry;
             App.Callback(() => BtnLoadOnClick(Entry, null));
-        }
-
-        private void OnLinksReceived((string[] Links, string Password) Info)
-        {
-            if (!Dispatcher.UIThread.CheckAccess())
-            {
-                App.Callback(() => OnLinksReceived(Info));
-                return;
-            }
-            
-            _ = URLAnalyzer.Analyze(Info.Links, false);
-
-            Model!.ShowLibrary = false;
-            tbURL.Text = Info.Links.First();
-            App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
         }
 
         private void UrlChanged(string Url)
@@ -1398,37 +1364,93 @@ namespace DirectPackageInstaller.Views
             }
         }
 
-        private void ServerOnTransferProgressChanged(TransferProgressInfo Info)
+        private void ServerOnTransferProgressChanged(TransferProgressInfo Info) => TransferMonitor.Instance.OnProgress(Info);
+
+        // ---- Envio: cancelar e histórico ----
+
+        /// <summary>Interrompe o envio atual neste PC (preparação e entrega ao console).</summary>
+        public void CancelTransfer()
         {
-            if (!App.Config.ShowTransferProgress)
-                return;
+            Installer.CancelRequested = true;
+            Installer.Server?.CancelTransfers();
+            TransferMonitor.Instance.MarkCancelled();
+            Model?.ApplyTransfer(TransferMonitor.Instance);
+        }
 
-            var Now = DateTime.Now;
-            if (!Info.Completed && (Now - LastTransferProgressUpdate).TotalMilliseconds < 500)
-                return;
+        private void CancelTransferClick(object? sender, RoutedEventArgs e) => CancelTransfer();
 
-            LastTransferProgressUpdate = Now;
-            var ProgressStatus = FormatTransferProgress(Info);
+        private void ToastCloseClick(object? sender, RoutedEventArgs e)
+        {
+            if ((sender as Control)?.DataContext is ToastItem Item)
+                Toast.Dismiss(Item);
+        }
 
-            App.Callback(() =>
+        private void OnTransferSessionEnded(TransferSession Session)
+        {
+            var Entry = new HistoryEntry
             {
-                if (App.Config.ShowTransferProgress)
-                    Status.Text = ProgressStatus;
+                Date = Session.Date,
+                Title = Session.Title,
+                TitleId = Session.TitleId,
+                Version = Session.Version,
+                Source = Session.Source,
+                Size = Session.TotalBytes,
+                Result = Session.Result switch
+                {
+                    TransferPhase.Finished => "COMPLETED",
+                    TransferPhase.Direct => "SENT",
+                    TransferPhase.Cancelled => "CANCELLED",
+                    _ => "FAILED"
+                }
+            };
+
+            if (Session.Result == TransferPhase.Finished)
+                Toast.Show("Download finished", $"{Session.Title} — the console is installing it", ToastKind.Success, 8);
+            else if (Session.Result == TransferPhase.Cancelled)
+                Toast.Show("Transfer cancelled", Session.Title);
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (Model == null)
+                    return;
+
+                Model.AddHistory(Entry);
+                HistoryStore.Save(Model.History);
             });
         }
 
-        private static string FormatTransferProgress(TransferProgressInfo Info)
+        private void TabHistoryClick(object? sender, RoutedEventArgs e)
         {
-            var Sent = TransferProgressInfo.FormatBytes(Info.BytesSent);
-            var Total = TransferProgressInfo.FormatBytes(Info.TotalBytes);
-
-            if (Info.Completed)
-                return $"Sent {Sent} / {Total}";
-
-            var Speed = TransferProgressInfo.FormatBytes(Info.BytesPerSecond);
-            return $"Sending {Sent} / {Total} ({Info.Percent:P1}) - {Speed}/s";
+            if (Model != null)
+                Model.ShowHistory = true;
         }
-        
+
+        private async void ClearHistoryClick(object? sender, RoutedEventArgs e)
+        {
+            if (Model == null || Model.History.Count == 0)
+                return;
+
+            if (await MessageBox.ShowAsync("Clear the whole send history?", "DirectPackageInstaller", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+
+            Model.ClearHistory();
+            HistoryStore.Save(Model.History);
+        }
+
+        private string SourceLabel()
+        {
+            if (InputType.HasFlag(Source.File))
+                return "FILE";
+
+            if (InputType.HasFlag(Source.RAR) || InputType.HasFlag(Source.SevenZip))
+                return "ARCHIVE";
+
+            if (InputType.HasFlag(Source.JSON))
+                return "MANIFEST";
+
+            return "URL";
+        }
+
         private async void RestartServer_OnClick(object? sender, RoutedEventArgs? e)
         {
             if (Model == null)

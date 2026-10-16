@@ -45,6 +45,10 @@ namespace DirectPackageInstaller.Desktop
 
             if (UILaunch)
             {
+                //Só uma cópia gráfica por vez: se já houver outra, ela é trazida para a frente
+                if (!SingleInstance.TryAcquire())
+                    return;
+
                 TempHelper.Clear();
                 BuildAvaloniaApp().StartWithClassicDesktopLifetime(args); 
                 TempHelper.Clear();

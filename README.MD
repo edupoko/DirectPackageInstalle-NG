@@ -22,7 +22,6 @@ Features
 -   Support for PSN update manifests (split PKGs)
 -   Works with or without Remote Package Installer
 -   Command Line Interface (CLI)
--   JDownloader Click'n Load support
 -   Auto LAN Cable Connection (Windows Only)
 -   Can Install PKGs from NFS source
     
