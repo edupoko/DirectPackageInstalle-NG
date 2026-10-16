@@ -167,7 +167,15 @@ namespace DirectPackageInstaller.Views
 
                 //O IP pode ter mudado durante a verificação; o próximo ciclo cuida do novo
                 if (Model.PS4IP == Ip)
+                {
+                    var HadRpi = Model.ConsoleHasRpi;
+
                     Model.ApplyConsoleStatus(Result);
+
+                    //O RPI acabou de ficar disponível: confere o que já está instalado
+                    if (Model.ConsoleHasRpi && !HadRpi)
+                        _ = RefreshInstalledFlags(true);
+                }
             }
             catch
             {
@@ -286,7 +294,13 @@ namespace DirectPackageInstaller.Views
             finally
             {
                 if (!Cts.IsCancellationRequested)
-                    Dispatcher.UIThread.Post(() => Model.FinishLibraryScan());
+                {
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        Model.FinishLibraryScan();
+                        _ = RefreshInstalledFlags();
+                    });
+                }
             }
         }
 
@@ -484,6 +498,7 @@ namespace DirectPackageInstaller.Views
              TransferTimer.Tick += (_, _) =>
              {
                  TransferMonitor.Instance.Tick();
+                 _ = PollConsoleTask();
                  Model?.ApplyTransfer(TransferMonitor.Instance);
              };
              TransferTimer.Start();
@@ -1225,7 +1240,13 @@ namespace DirectPackageInstaller.Views
                 var Sent = await Installer.PushPackage(App.Config, InputType, PKGStream!, URL, CurrentDecompressor, CurrentDecompressorVolumes, SetStatus, () => Status.Text, Silent);
 
                 if (Sent)
+                {
                     TransferMonitor.Instance.MarkSent();
+
+                    //Enviado pelo RPI: passa a acompanhar a tarefa no próprio console
+                    if (Installer.LastRpiTaskId is int RpiTask && Installer.LastRpiIp != null)
+                        TransferMonitor.Instance.AttachConsoleTask(RpiTask, Installer.LastRpiIp);
+                }
 
                 return Sent;
             }
@@ -1510,14 +1531,199 @@ namespace DirectPackageInstaller.Views
 
         private void ServerOnTransferProgressChanged(TransferProgressInfo Info) => TransferMonitor.Instance.OnProgress(Info);
 
+        // ---- Controle da instalação no console (Remote Package Installer) ----
+
+        private DateTime LastRemotePoll = DateTime.MinValue;
+        private bool RemotePolling;
+
+        /// <summary>Pergunta ao console como está a tarefa de instalação (a cada 2 s).</summary>
+        private async Task PollConsoleTask()
+        {
+            var Monitor = TransferMonitor.Instance;
+
+            if (RemotePolling || !Monitor.IsActive || Monitor.ConsoleTaskId is not int TaskId)
+                return;
+
+            if (DateTime.Now - LastRemotePoll < TimeSpan.FromSeconds(2))
+                return;
+
+            RemotePolling = true;
+            LastRemotePoll = DateTime.Now;
+
+            try
+            {
+                var Progress = await RpiClient.GetTaskProgress(Monitor.ConsoleIp, TaskId);
+
+                if (Progress != null)
+                    Monitor.ApplyRemote(Progress);
+                else
+                    Monitor.RemoteMiss();
+            }
+            finally
+            {
+                RemotePolling = false;
+            }
+        }
+
+        private async void TogglePauseClick(object? sender, RoutedEventArgs e)
+        {
+            var Monitor = TransferMonitor.Instance;
+
+            if (Monitor.ConsoleTaskId is not int TaskId)
+                return;
+
+            var Pausing = !Monitor.ConsolePaused;
+            var Reply = Pausing ? await RpiClient.PauseTask(Monitor.ConsoleIp, TaskId) : await RpiClient.ResumeTask(Monitor.ConsoleIp, TaskId);
+
+            if (Reply.Success)
+                Monitor.SetPaused(Pausing);
+            else
+                Toast.Show(Pausing ? "Couldn't pause the download" : "Couldn't resume the download", Reply.Error, ToastKind.Error);
+
+            Model?.ApplyTransfer(Monitor);
+        }
+
+        /// <summary>Para e remove a tarefa no console, para o download não continuar sozinho.</summary>
+        private async Task CancelOnConsole(string Ip, int TaskId)
+        {
+            var Stopped = await RpiClient.StopTask(Ip, TaskId);
+            await RpiClient.UnregisterTask(Ip, TaskId);
+
+            if (!Stopped.Success)
+                Toast.Show("Couldn't stop the download on the console", Stopped.Error, ToastKind.Warning, 8);
+        }
+
+        private CancellationTokenSource? InstalledCts;
+        private DateTime LastInstalledCheck = DateTime.MinValue;
+
+        /// <summary>Intervalo mínimo entre consultas de "instalado", para não sobrecarregar o console.</summary>
+        private static readonly TimeSpan InstalledCheckInterval = TimeSpan.FromMinutes(5);
+
+        /// <summary>
+        /// Consulta ao console quais jogos da biblioteca estão instalados (uma consulta por Title ID,
+        /// em sequência e com pausa entre elas). Só roda com o RPI ativo.
+        /// </summary>
+        public async Task RefreshInstalledFlags(bool Force = false)
+        {
+            if (Model == null || !Model.ConsoleHasRpi)
+                return;
+
+            if (!Force && DateTime.Now - LastInstalledCheck < InstalledCheckInterval)
+                return;
+
+            InstalledCts?.Cancel();
+            var Cts = InstalledCts = new CancellationTokenSource();
+            LastInstalledCheck = DateTime.Now;
+
+            var Ip = Model.PS4IP;
+            var Answers = new Dictionary<string, (bool Exists, long Size)>();
+
+            try
+            {
+                foreach (var Item in Model.LibraryItems.Where(x => x.Kind == "GAME" && RpiClient.IsValidTitleId(x.TitleId)).Take(300).ToList())
+                {
+                    if (Cts.IsCancellationRequested)
+                        return;
+
+                    if (!Answers.TryGetValue(Item.TitleId, out var Answer))
+                    {
+                        var Reply = await RpiClient.IsInstalled(Ip, Item.TitleId);
+
+                        if (!Reply.Ok)
+                        {
+                            //O console não respondeu: tenta de novo no próximo ciclo
+                            LastInstalledCheck = DateTime.MinValue;
+                            return;
+                        }
+
+                        Answer = Answers[Item.TitleId] = (Reply.Exists, Reply.Size);
+
+                        await Task.Delay(150, Cts.Token);
+                    }
+
+                    Item.Installed = Answer.Exists;
+                    Item.InstalledSize = Answer.Exists && Answer.Size > 0 ? TransferProgressInfo.FormatBytes(Answer.Size) : "";
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        private async void LibraryUninstallClick(object? sender, RoutedEventArgs e)
+        {
+            if (Model == null || (sender as Control)?.DataContext is not LibraryItem Item)
+                return;
+
+            if (!Model.ConsoleHasRpi)
+            {
+                Toast.Show("Remote Package Installer not available", "Start it on the console to remove packages from here.", ToastKind.Warning, 8);
+                return;
+            }
+
+            var Ip = Model.PS4IP;
+
+            var What = Item.Kind switch
+            {
+                "UPDATE" => "update",
+                "DLC" => "add-on content",
+                _ => "game"
+            };
+
+            var Answer = await MessageBox.ShowAsync($"Remove this {What} from the console?\n\n{Item.Title}\n{Item.Subtitle}\n\nConsole: {Ip}", "DirectPackageInstaller", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            if (Answer != DialogResult.Yes)
+                return;
+
+            var Reply = Item.Kind switch
+            {
+                "UPDATE" => await RpiClient.UninstallPatch(Ip, Item.TitleId),
+                "DLC" => await RpiClient.UninstallAdditionalContent(Ip, Item.ContentId),
+                _ => await RpiClient.UninstallGame(Ip, Item.TitleId)
+            };
+
+            if (!Reply.Success)
+            {
+                Toast.Show("Couldn't remove it from the console", Reply.Error, ToastKind.Error, 8);
+                return;
+            }
+
+            Toast.Show("Removed from the console", Item.Title, ToastKind.Success);
+
+            Item.Installed = false;
+            Item.InstalledSize = "";
+
+            var Entry = new HistoryEntry
+            {
+                Date = DateTime.Now,
+                Title = Item.Title,
+                TitleId = Item.TitleId,
+                Version = Item.Version,
+                Source = "CONSOLE",
+                Result = "REMOVED",
+                Size = 0
+            };
+
+            Model.AddHistory(Entry);
+            HistoryStore.Save(Model.History);
+        }
+
         // ---- Envio: cancelar e histórico ----
 
         /// <summary>Interrompe o envio atual neste PC (preparação e entrega ao console).</summary>
         public void CancelTransfer()
         {
+            var Monitor = TransferMonitor.Instance;
+
             Installer.CancelRequested = true;
             Installer.Server?.CancelTransfers();
-            TransferMonitor.Instance.MarkCancelled();
+
+            var OnConsole = Monitor.ConsoleTaskId != null;
+
+            if (Monitor.ConsoleTaskId is int TaskId)
+                _ = CancelOnConsole(Monitor.ConsoleIp, TaskId);
+
+            Monitor.MarkCancelled(OnConsole);
             Model?.ApplyTransfer(TransferMonitor.Instance);
         }
 
@@ -1560,6 +1766,9 @@ namespace DirectPackageInstaller.Views
 
                 Model.AddHistory(Entry);
                 HistoryStore.Save(Model.History);
+
+                if (Session.Result is TransferPhase.Finished or TransferPhase.Direct)
+                    _ = RefreshInstalledFlags(true);
             });
         }
 

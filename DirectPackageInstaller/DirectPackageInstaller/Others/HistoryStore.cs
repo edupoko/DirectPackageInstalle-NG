@@ -34,6 +34,7 @@ public class HistoryEntry
         "COMPLETED" => "#4ADE80",
         "SENT" => "#60A5FA",
         "FAILED" => "#F87171",
+        "REMOVED" => "#C084FC",
         _ => "#9A9AA2"
     }));
 
