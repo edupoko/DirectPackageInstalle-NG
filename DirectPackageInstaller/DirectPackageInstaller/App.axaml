@@ -10,26 +10,26 @@
                 <ResourceInclude Source="avares://DirectPackageInstaller/Styles/Icons.axaml"/>
             </ResourceDictionary.MergedDictionaries>
         <!-- Cor de fundo das telas. Trocar aqui altera todas as views. -->
-        <SolidColorBrush x:Key="AppBackgroundBrush">#171C2C</SolidColorBrush>
-        <SolidColorBrush x:Key="SurfaceHoverBrush">#232A3F</SolidColorBrush>
-        <SolidColorBrush x:Key="BorderStrongBrush">#4A5270</SolidColorBrush>
+        <SolidColorBrush x:Key="AppBackgroundBrush">#1C1C1E</SolidColorBrush>
+        <SolidColorBrush x:Key="SurfaceHoverBrush">#2A2A2D</SolidColorBrush>
+        <SolidColorBrush x:Key="BorderStrongBrush">#48484D</SolidColorBrush>
         <SolidColorBrush x:Key="TextPrimaryBrush">#FFFFFF</SolidColorBrush>
-        <SolidColorBrush x:Key="TextMutedBrush">#8D96B2</SolidColorBrush>
+        <SolidColorBrush x:Key="TextMutedBrush">#9A9AA2</SolidColorBrush>
         <SolidColorBrush x:Key="PrimaryBrush">#FFFFFF</SolidColorBrush>
-        <SolidColorBrush x:Key="PrimaryHoverBrush">#DCE0EC</SolidColorBrush>
-        <SolidColorBrush x:Key="OnPrimaryBrush">#0B0E18</SolidColorBrush>
+        <SolidColorBrush x:Key="PrimaryHoverBrush">#D8D8DC</SolidColorBrush>
+        <SolidColorBrush x:Key="OnPrimaryBrush">#0B0B0D</SolidColorBrush>
         <FontFamily x:Key="MonoFontFamily">Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, monospace</FontFamily>
 
             <!-- Caixa de seleção: marcada em branco (no lugar do destaque padrão do tema) -->
             <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked">#FFFFFF</SolidColorBrush>
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver">#DCE0EC</SolidColorBrush>
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed">#C5CADB</SolidColorBrush>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver">#D8D8DC</SolidColorBrush>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed">#BEBEC4</SolidColorBrush>
             <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeChecked">#FFFFFF</SolidColorBrush>
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver">#DCE0EC</SolidColorBrush>
-            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed">#C5CADB</SolidColorBrush>
-            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked">#0B0E18</SolidColorBrush>
-            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver">#0B0E18</SolidColorBrush>
-            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed">#0B0E18</SolidColorBrush>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver">#D8D8DC</SolidColorBrush>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed">#BEBEC4</SolidColorBrush>
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked">#0B0B0D</SolidColorBrush>
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver">#0B0B0D</SolidColorBrush>
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed">#0B0B0D</SolidColorBrush>
         </ResourceDictionary>
     </Application.Resources>
 

@@ -83,20 +83,21 @@
             <Setter Property="Background" Value="Transparent"/>
         </Style>
         <Style Selector="Button.window:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#232A3F"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#0B0B0D"/>
         </Style>
         <Style Selector="Button.window:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#2E3652"/>
+            <Setter Property="Background" Value="#D0D0D4"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#0B0B0D"/>
         </Style>
-        <Style Selector="Button.window.close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#C42B1C"/>
+        <!-- Ícones desenhados com Path.glyph ficam escuros sobre o fundo branco -->
+        <Style Selector="Button.window:pointerover Path.glyph">
+            <Setter Property="Stroke" Value="#0B0B0D"/>
         </Style>
-        <Style Selector="Button.window.close:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#9E2216"/>
+        <Style Selector="Button.window:pressed Path.glyph">
+            <Setter Property="Stroke" Value="#0B0B0D"/>
         </Style>
         <Style Selector="Path.glyph">
             <Setter Property="Stroke" Value="{DynamicResource TextPrimaryBrush}"/>

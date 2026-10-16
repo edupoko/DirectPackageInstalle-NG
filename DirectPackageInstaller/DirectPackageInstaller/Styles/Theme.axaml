@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!--
         Estilos comuns do app (referência visual: pasta inspiracoes/).
-        Cantos retos, linhas finas e rótulos em monoespaçada.
+        Cantos retos, linhas finas, rótulos em monoespaçada e fundo cinza escuro.
         Os tokens de cor ficam em App.axaml (Application.Resources).
     -->
 
@@ -16,21 +16,35 @@
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
     </Style>
-    <!-- Estados do botão padrão: sempre escuros, com texto branco -->
+
+    <!-- Hover: fundo branco, texto e ícone escuros -->
     <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#232A3F"/>
+        <Setter Property="Background" Value="#FFFFFF"/>
         <Setter Property="BorderBrush" Value="#FFFFFF"/>
-        <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Setter Property="Foreground" Value="#0B0B0D"/>
     </Style>
+    <Style Selector="Button:pointerover Path.icon">
+        <Setter Property="Stroke" Value="#0B0B0D"/>
+    </Style>
+
+    <!-- Pressionado: branco levemente acinzentado -->
     <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#2E3652"/>
-        <Setter Property="BorderBrush" Value="#FFFFFF"/>
-        <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Setter Property="Background" Value="#D0D0D4"/>
+        <Setter Property="BorderBrush" Value="#D0D0D4"/>
+        <Setter Property="Foreground" Value="#0B0B0D"/>
     </Style>
+    <Style Selector="Button:pressed Path.icon">
+        <Setter Property="Stroke" Value="#0B0B0D"/>
+    </Style>
+
+    <!-- Desabilitado -->
     <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderBrush" Value="#2E3652"/>
-        <Setter Property="Foreground" Value="#5C6580"/>
+        <Setter Property="BorderBrush" Value="#3A3A3F"/>
+        <Setter Property="Foreground" Value="#6A6A72"/>
+    </Style>
+    <Style Selector="Button:disabled Path.icon">
+        <Setter Property="Stroke" Value="#6A6A72"/>
     </Style>
 
     <!-- Botão primário: retângulo branco chapado com texto escuro -->
@@ -40,19 +54,19 @@
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
     </Style>
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#DCE0EC"/>
-        <Setter Property="Foreground" Value="#0B0E18"/>
-        <Setter Property="BorderBrush" Value="#DCE0EC"/>
+        <Setter Property="Background" Value="#D8D8DC"/>
+        <Setter Property="Foreground" Value="#0B0B0D"/>
+        <Setter Property="BorderBrush" Value="#D8D8DC"/>
     </Style>
     <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#C5CADB"/>
-        <Setter Property="Foreground" Value="#0B0E18"/>
-        <Setter Property="BorderBrush" Value="#C5CADB"/>
+        <Setter Property="Background" Value="#BEBEC4"/>
+        <Setter Property="Foreground" Value="#0B0B0D"/>
+        <Setter Property="BorderBrush" Value="#BEBEC4"/>
     </Style>
     <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#232A3F"/>
-        <Setter Property="Foreground" Value="#5C6580"/>
-        <Setter Property="BorderBrush" Value="#232A3F"/>
+        <Setter Property="Background" Value="#2A2A2D"/>
+        <Setter Property="Foreground" Value="#6A6A72"/>
+        <Setter Property="BorderBrush" Value="#2A2A2D"/>
     </Style>
 
     <!-- Campos: cantos retos -->
@@ -61,6 +75,15 @@
     </Style>
     <Style Selector="ComboBox">
         <Setter Property="CornerRadius" Value="0"/>
+    </Style>
+
+    <!-- Tabela de parâmetros: cabeçalho na paleta cinza (o padrão do tema é preto puro) -->
+    <Style Selector="DataGridColumnHeader">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+    </Style>
+    <Style Selector="GridSplitter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
     </Style>
 
     <!-- Rótulo de seção/estado: monoespaçada, pequena e em cinza -->
@@ -95,7 +118,7 @@
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
-    <!-- Título de seção: monoespaçada, cinza, com linha fina embaixo -->
+    <!-- Título de seção: monoespaçada e cinza -->
     <Style Selector="TextBlock.section">
         <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}"/>
         <Setter Property="FontSize" Value="11"/>
