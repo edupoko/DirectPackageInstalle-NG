@@ -16,6 +16,8 @@ namespace DirectPackageInstaller
         public string PSIP;
         public string PCIP;
 
+        public string LibraryPath;
+
         public int? PayloadPort;
 
         public bool UseAllDebrid;

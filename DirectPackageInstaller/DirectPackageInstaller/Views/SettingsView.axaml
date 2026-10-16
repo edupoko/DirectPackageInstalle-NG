@@ -36,6 +36,13 @@
                         <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PCIP, Mode=TwoWay}" Watermark="192.168.0.20"/>
                     </Grid>
 
+                    <TextBlock Classes="section" Text="LIBRARY"/>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Grid.Column="0" Text="{Binding LibraryPath, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                 Watermark="Folder with your .pkg files"/>
+                        <Button Grid.Column="1" Name="btnBrowseLibrary" Content="BROWSE" Margin="6,0,0,0" Padding="14,6"/>
+                    </Grid>
+
                     <TextBlock Classes="section" Text="DOWNLOADS"/>
                     <CheckBox Content="Proxy downloads" IsChecked="{Binding ProxyMode, Mode=TwoWay}"/>
                     <CheckBox Content="Segmented downloads" IsChecked="{Binding SegmentedMode, Mode=TwoWay}"/>

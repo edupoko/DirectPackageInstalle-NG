@@ -26,6 +26,7 @@ namespace DirectPackageInstaller.Views
             Settings.CloseRequested += HideSettings;
             Settings.RestartServerRequested += () => View.RestartServer();
             Settings.DhcpToggleRequested += () => View.ToggleDhcpService();
+            Settings.BrowseLibraryRequested += () => _ = View.ChooseLibraryFolder();
 
             Opened += MainWindowOpened;
             Closing += MainWindowClosing;

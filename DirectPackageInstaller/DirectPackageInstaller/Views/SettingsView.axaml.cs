@@ -13,6 +13,7 @@ namespace DirectPackageInstaller.Views
         public event Action? CloseRequested;
         public event Action? RestartServerRequested;
         public event Action? DhcpToggleRequested;
+        public event Action? BrowseLibraryRequested;
 
         public SettingsView()
         {
@@ -23,6 +24,7 @@ namespace DirectPackageInstaller.Views
             btnCloseSettings.Click += (_, _) => CloseRequested?.Invoke();
             btnDoneSettings.Click += (_, _) => CloseRequested?.Invoke();
             btnRestartServer.Click += (_, _) => RestartServerRequested?.Invoke();
+            btnBrowseLibrary.Click += (_, _) => BrowseLibraryRequested?.Invoke();
 
             // O DHCP pede confirmação e inicia o serviço; a MainView alterna a propriedade.
             cbDhcp.Click += (_, _) => DhcpToggleRequested?.Invoke();

@@ -15,6 +15,7 @@
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
     <!-- A cor do texto e dos ícones vem do Foreground do próprio botão -->
@@ -137,6 +138,19 @@
     <!-- Expander: reto e sem preenchimento no cabeçalho -->
     <Style Selector="Expander">
         <Setter Property="CornerRadius" Value="0"/>
+    </Style>
+
+    <!-- Abas: botões lado a lado; a ativa fica invertida em branco -->
+    <Style Selector="Button.tab">
+        <Setter Property="Padding" Value="18,7"/>
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Margin" Value="0,0,-1,0"/>
+    </Style>
+    <Style Selector="Button.tab.active">
+        <Setter Property="Background" Value="#FFFFFF"/>
+        <Setter Property="Foreground" Value="#0B0B0D"/>
+        <Setter Property="BorderBrush" Value="#FFFFFF"/>
     </Style>
 
     <!-- Campos: cantos retos -->
