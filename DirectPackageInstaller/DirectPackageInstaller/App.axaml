@@ -20,6 +20,16 @@
         <SolidColorBrush x:Key="OnPrimaryBrush">#0B0B0D</SolidColorBrush>
         <FontFamily x:Key="MonoFontFamily">Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, monospace</FontFamily>
 
+            <!-- Barra de rolagem compacta: fina, sem setas e com alça cinza discreta -->
+            <x:Double x:Key="ScrollBarSize">8</x:Double>
+            <SolidColorBrush x:Key="ScrollBarThumbFill">#55555B</SolidColorBrush>
+            <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver">#80808A</SolidColorBrush>
+            <SolidColorBrush x:Key="ScrollBarThumbFillPressed">#A5A5AE</SolidColorBrush>
+            <SolidColorBrush x:Key="ScrollBarTrackFill">Transparent</SolidColorBrush>
+            <SolidColorBrush x:Key="ScrollBarTrackFillPointerOver">Transparent</SolidColorBrush>
+            <SolidColorBrush x:Key="ScrollBarTrackStroke">Transparent</SolidColorBrush>
+            <SolidColorBrush x:Key="ScrollBarTrackStrokePointerOver">Transparent</SolidColorBrush>
+
             <!-- Caixa de seleção: marcada em branco (no lugar do destaque padrão do tema) -->
             <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked">#FFFFFF</SolidColorBrush>
             <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver">#D8D8DC</SolidColorBrush>
