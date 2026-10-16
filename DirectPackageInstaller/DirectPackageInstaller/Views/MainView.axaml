@@ -155,7 +155,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <!-- Cartão de altura fixa: o botão fica sempre na base e as linhas de texto alinham entre cartões -->
-                            <Border Width="280" Height="150" Margin="0,0,12,12" Padding="12"
+                            <Border Width="280" Height="176" Margin="0,0,12,12" Padding="12"
                                     BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1">
                                 <Grid RowDefinitions="*,Auto">
                                     <Grid Grid.Row="0" ColumnDefinitions="64,*">
@@ -169,17 +169,27 @@
                                                        MaxLines="2" MinHeight="40" TextTrimming="CharacterEllipsis"
                                                        VerticalAlignment="Top" Margin="0"/>
                                             <TextBlock Text="{Binding Subtitle}" Classes="caption" VerticalAlignment="Top" Margin="0"/>
-                                            <StackPanel Orientation="Horizontal" Spacing="8" MinHeight="20">
-                                                <TextBlock Text="{Binding Details}" Classes="caption" VerticalAlignment="Center" Margin="0"/>
+                                            <TextBlock Text="{Binding Details}" Classes="caption" VerticalAlignment="Top" Margin="0"/>
+                                            <!-- Linha de etiquetas sempre reservada -->
+                                            <StackPanel Orientation="Horizontal" Spacing="6" MinHeight="22" Margin="0,3,0,0">
                                                 <Border Classes="tag" VerticalAlignment="Center"
                                                         IsVisible="{Binding IsSent}" BorderBrush="#4ADE80">
                                                     <TextBlock Text="SENT" Foreground="#4ADE80"/>
                                                 </Border>
+                                                <Border Classes="tag" VerticalAlignment="Center"
+                                                        IsVisible="{Binding Installed}" BorderBrush="#60A5FA">
+                                                    <TextBlock Text="{Binding InstalledText}" Foreground="#60A5FA"/>
+                                                </Border>
                                             </StackPanel>
                                         </StackPanel>
                                     </Grid>
-                                    <Button Grid.Row="1" Content="OPEN" Classes="primary" HorizontalAlignment="Stretch"
-                                            Margin="0,12,0,0" Padding="0,8" Click="LibraryItemClick"/>
+                                    <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,12,0,0">
+                                        <Button Grid.Column="0" Content="OPEN" Classes="primary" HorizontalAlignment="Stretch"
+                                                Padding="0,8" Click="LibraryItemClick"/>
+                                        <Button Grid.Column="1" Content="UNINSTALL" Margin="8,0,0,0" Padding="14,8"
+                                                IsVisible="{Binding CanUninstall}" Click="LibraryUninstallClick"
+                                                ToolTip.Tip="Remove it from the console"/>
+                                    </Grid>
                                 </Grid>
                             </Border>
                         </DataTemplate>
@@ -292,7 +302,7 @@
 
         <Border Grid.Row="4" Grid.ColumnSpan="2" BorderBrush="{DynamicResource BorderStrongBrush}"
                 BorderThickness="0,1,0,0" Padding="12,8">
-            <Grid ColumnDefinitions="*,Auto,Auto">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                 <TextBlock Grid.Column="0" Name="Status" Classes="caption" Margin="0" TextTrimming="CharacterEllipsis"
                            VerticalAlignment="Center"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="12,0,0,0"
@@ -303,7 +313,9 @@
                                  Value="{Binding TransferProgress}" IsIndeterminate="{Binding TransferIndeterminate}"
                                  IsVisible="{Binding TransferShowBar}"/>
                 </StackPanel>
-                <Button Grid.Column="2" Content="CANCEL" Height="28" Padding="14,0" Margin="12,0,0,0" FontSize="11"
+                <Button Grid.Column="2" Content="{Binding TransferPauseText}" Height="28" Padding="14,0" Margin="12,0,0,0" FontSize="11"
+                        IsVisible="{Binding TransferCanControl}" Click="TogglePauseClick"/>
+                <Button Grid.Column="3" Content="CANCEL" Height="28" Padding="14,0" Margin="8,0,0,0" FontSize="11"
                         IsVisible="{Binding CanCancelTransfer}" Click="CancelTransferClick"/>
             </Grid>
         </Border>

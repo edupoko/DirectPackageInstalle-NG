@@ -68,6 +68,32 @@ namespace DirectPackageInstaller.Host
         public long ServedBytes { get; private set; }
         public double BytesPerSecond { get; private set; }
 
+        // ---- Tarefa no console (Remote Package Installer) ----
+        //
+        // Quando o RPI devolve o número da tarefa, o progresso vem do próprio console
+        // (bytes, tempo restante e erro), inclusive no modo direto, em que o PC não
+        // participa da transferência.
+
+        private const int MaxRemoteMisses = 5;
+        private int RemoteMisses;
+        private int RemoteRestSeconds;
+        private int RemotePreparingPercent;
+
+        public int? ConsoleTaskId { get; private set; }
+        public string ConsoleIp { get; private set; } = "";
+        public bool ConsolePaused { get; private set; }
+
+        /// <summary>O cancelamento também removeu a tarefa do console.</summary>
+        public bool CancelledOnConsole { get; private set; }
+
+        /// <summary>Erro informado pelo console (vazio se não houve).</summary>
+        public string FailureText { get; private set; } = "";
+
+        public bool HasConsoleTask => ConsoleTaskId != null;
+
+        /// <summary>Percentual de preparação informado pelo console antes de começar a baixar (-1 se desconhecido).</summary>
+        public int PreparingPercent => RemotePreparingPercent;
+
         private DateTime SentAt = DateTime.MinValue;
         private DateTime LastBytesAt = DateTime.MinValue;
         private DateTime EndedAt = DateTime.MinValue;
@@ -80,6 +106,9 @@ namespace DirectPackageInstaller.Host
         {
             get
             {
+                if (Phase == TransferPhase.Transferring && HasConsoleTask && RemoteRestSeconds > 0 && !ConsolePaused)
+                    return TimeSpan.FromSeconds(RemoteRestSeconds);
+
                 if (Phase != TransferPhase.Transferring || BytesPerSecond < 1 || TotalBytes <= ServedBytes)
                     return null;
 
@@ -111,6 +140,14 @@ namespace DirectPackageInstaller.Host
                 ServedBytes = 0;
                 BytesPerSecond = 0;
                 SentAt = LastBytesAt = EndedAt = DateTime.MinValue;
+                ConsoleTaskId = null;
+                ConsoleIp = "";
+                ConsolePaused = false;
+                CancelledOnConsole = false;
+                FailureText = "";
+                RemoteMisses = 0;
+                RemoteRestSeconds = 0;
+                RemotePreparingPercent = -1;
                 Phase = TransferPhase.Preparing;
             }
 
@@ -133,7 +170,96 @@ namespace DirectPackageInstaller.Host
 
         public void MarkFailed() => End(TransferPhase.Failed);
 
-        public void MarkCancelled() => End(TransferPhase.Cancelled);
+        public void MarkCancelled(bool OnConsole = false)
+        {
+            lock (Sync)
+                CancelledOnConsole = OnConsole;
+
+            End(TransferPhase.Cancelled);
+        }
+
+        /// <summary>Passa a acompanhar a tarefa criada no console pelo RPI.</summary>
+        public void AttachConsoleTask(int TaskId, string Ip)
+        {
+            lock (Sync)
+            {
+                if (!IsActive)
+                    return;
+
+                ConsoleTaskId = TaskId;
+                ConsoleIp = Ip;
+                RemoteMisses = 0;
+                Samples.Clear();
+            }
+        }
+
+        public void SetPaused(bool Paused)
+        {
+            lock (Sync)
+                ConsolePaused = Paused;
+        }
+
+        /// <summary>Aplica o progresso informado pelo console.</summary>
+        public void ApplyRemote(RpiProgress Progress)
+        {
+            TransferSession? Ended = null;
+
+            lock (Sync)
+            {
+                if (!IsActive || !HasConsoleTask)
+                    return;
+
+                RemoteMisses = 0;
+                RemoteRestSeconds = Progress.RestSecTotal;
+                RemotePreparingPercent = Progress.PreparingPercent;
+
+                if (Progress.Error != 0)
+                {
+                    FailureText = RpiClient.DescribeError(Progress.Error);
+                    Ended = Finish(TransferPhase.Failed);
+                }
+                else
+                {
+                    if (Progress.LengthTotal > 0)
+                        TotalBytes = Progress.LengthTotal;
+
+                    var Delta = Progress.TransferredTotal - ServedBytes;
+                    ServedBytes = Progress.TransferredTotal;
+
+                    if (Delta > 0)
+                    {
+                        var Now = DateTime.Now;
+                        LastBytesAt = Now;
+                        Samples.Enqueue((Now, Delta));
+                    }
+
+                    if (Progress.IsComplete)
+                        Ended = Finish(TransferPhase.Finished);
+                    else
+                        Phase = Progress.TransferredTotal > 0 ? TransferPhase.Transferring : TransferPhase.Waiting;
+                }
+            }
+
+            if (Ended != null)
+                SessionEnded?.Invoke(Ended);
+        }
+
+        /// <summary>
+        /// O console não respondeu à consulta da tarefa. Depois de várias falhas seguidas (a tarefa foi
+        /// removida no console ou ele desligou), volta a acompanhar só pelo que o PC entrega.
+        /// </summary>
+        public void RemoteMiss()
+        {
+            lock (Sync)
+            {
+                if (!HasConsoleTask || ++RemoteMisses < MaxRemoteMisses)
+                    return;
+
+                ConsoleTaskId = null;
+                ConsolePaused = false;
+                SentAt = DateTime.Now;
+            }
+        }
 
         /// <summary>Encerra o painel de resultado.</summary>
         public void Dismiss()
@@ -150,7 +276,7 @@ namespace DirectPackageInstaller.Host
         {
             lock (Sync)
             {
-                if (!IsActive)
+                if (!IsActive || HasConsoleTask)
                     return;
 
                 //O progresso é por requisição; soma só o que cada uma entregou desde a última leitura
@@ -185,7 +311,14 @@ namespace DirectPackageInstaller.Host
 
                 BytesPerSecond = Samples.Count == 0 ? 0 : Samples.Sum(x => x.Bytes) / 4.0;
 
-                if (Phase == TransferPhase.Waiting && ServedBytes == 0 && SentAt != DateTime.MinValue
+                if (HasConsoleTask)
+                {
+                    //O fim vem do progresso do console (ApplyRemote); aqui só se limpa o resultado antigo
+                    if (!IsActive && Phase != TransferPhase.Idle && EndedAt != DateTime.MinValue
+                        && (Now - EndedAt).TotalSeconds >= ResultVisibleSeconds)
+                        Phase = TransferPhase.Idle;
+                }
+                else if (Phase == TransferPhase.Waiting && ServedBytes == 0 && SentAt != DateTime.MinValue
                     && (Now - SentAt).TotalSeconds >= DirectModeTimeoutSeconds)
                 {
                     Ended = Finish(TransferPhase.Direct);

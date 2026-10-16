@@ -254,6 +254,7 @@ namespace DirectPackageInstaller.ViewModels
             _consoleStatus = Result;
             InferConsoleType(Result);
             RaiseConsoleStatusTexts();
+            UpdateRpiFlags();
         }
 
         /// <summary>Mostra "checking" só na primeira verificação, para o indicador não piscar a cada ciclo.</summary>
@@ -279,7 +280,7 @@ namespace DirectPackageInstaller.ViewModels
 
                 return _consoleStatus.State switch
                 {
-                    ConsoleState.Ready => $"{Prefix}{PS4IP}  ·  {_consoleStatus.Services}",
+                    ConsoleState.Ready => $"{Prefix}{PS4IP}  ·  {_consoleStatus.Services}" + (RpiMissing ? "  ·  RPI off" : ""),
                     ConsoleState.NoInstaller => $"{Prefix}{PS4IP}  ·  no installer found",
                     ConsoleState.Offline => $"{Prefix}{PS4IP}  ·  not reachable",
                     _ => $"{Prefix}{PS4IP}  ·  checking..."
@@ -300,14 +301,36 @@ namespace DirectPackageInstaller.ViewModels
             ? "No console configured. Open Settings and press DETECT CONSOLE."
             : (ConsoleTypeShown.Length > 0 ? ConsoleTypeNote + ". " : "") + _consoleStatus.State switch
             {
+                ConsoleState.Ready when RpiMissing => "Ready to send. Remote Package Installer isn't running: open it on the console to get the real installation progress, pause, cancel and uninstall.",
                 ConsoleState.Ready => "Ready to send. Click to open the network settings.",
                 ConsoleState.NoInstaller => "The console answers, but GoldHEN, Remote Package Installer or etaHEN weren't found. Enable the payload server on the console.",
                 ConsoleState.Offline => "The console doesn't answer. Check that it is on and on the same network.",
                 _ => "Checking the console..."
             };
 
+        /// <summary>O console responde e o Remote Package Installer está ativo (instalar com controle, desinstalar).</summary>
+        /// <summary>
+        /// O console responde com algum instalador, mas o RPI não está aberto. No PS5 (etaHEN) não se aplica:
+        /// o RPI é um aplicativo do PS4.
+        /// </summary>
+        public bool RpiMissing => _consoleStatus.State == ConsoleState.Ready
+            && !_consoleStatus.Services.Contains("RPI") && !_consoleStatus.Services.Contains("etaHEN");
+
+        /// <summary>O console está acessível com algum instalador.</summary>
+        public bool ConsoleIsReady => _consoleStatus.State == ConsoleState.Ready;
+
+        public bool ConsoleHasRpi => _consoleStatus.State == ConsoleState.Ready && _consoleStatus.Services.Contains("RPI");
+
+        private void UpdateRpiFlags()
+        {
+            foreach (var Item in _libraryAll)
+                Item.RpiReady = ConsoleHasRpi;
+        }
+
         private void RaiseConsoleStatusTexts()
         {
+            this.RaisePropertyChanged(nameof(ConsoleHasRpi));
+            this.RaisePropertyChanged(nameof(RpiMissing));
             this.RaisePropertyChanged(nameof(ConsoleTypeShown));
             this.RaisePropertyChanged(nameof(ConsoleTypeNote));
             this.RaisePropertyChanged(nameof(ConsoleStatusText));
@@ -378,6 +401,20 @@ namespace DirectPackageInstaller.ViewModels
             private set => this.RaiseAndSetIfChanged(ref _canCancelTransfer, value);
         }
 
+        private bool _transferCanControl;
+        public bool TransferCanControl
+        {
+            get => _transferCanControl;
+            private set => this.RaiseAndSetIfChanged(ref _transferCanControl, value);
+        }
+
+        private string _transferPauseText = "PAUSE";
+        public string TransferPauseText
+        {
+            get => _transferPauseText;
+            private set => this.RaiseAndSetIfChanged(ref _transferPauseText, value);
+        }
+
         private bool _transferShowBar;
         public bool TransferShowBar
         {
@@ -412,18 +449,25 @@ namespace DirectPackageInstaller.ViewModels
 
             TransferVisible = Phase != TransferPhase.Idle;
             CanCancelTransfer = Monitor.IsActive;
+            TransferCanControl = Monitor.IsActive && Monitor.HasConsoleTask;
+            TransferPauseText = Monitor.ConsolePaused ? "RESUME" : "PAUSE";
             TransferIndeterminate = Phase is TransferPhase.Preparing or TransferPhase.Waiting;
             TransferShowBar = ShowTransferProgress && Monitor.IsActive;
             TransferProgress = Monitor.Progress;
             TransferText = Phase switch
             {
                 TransferPhase.Preparing => "Preparing...",
-                TransferPhase.Waiting => "Sent. Waiting for the console to start the download...",
+                TransferPhase.Waiting => Monitor.HasConsoleTask && Monitor.PreparingPercent is >= 0 and < 100
+                    ? $"The console is preparing the download ({Monitor.PreparingPercent}%)..."
+                    : "Sent. Waiting for the console to start the download...",
+                TransferPhase.Transferring when Monitor.ConsolePaused => "Paused on the console  ·  " + DescribeTransfer(Monitor),
                 TransferPhase.Transferring => DescribeTransfer(Monitor),
                 TransferPhase.Finished => "Download finished. The console is installing it; check its notifications.",
                 TransferPhase.Direct => "Sent. The console downloads straight from the source; progress isn't visible here.",
-                TransferPhase.Failed => "Failed to send the package.",
-                TransferPhase.Cancelled => "Cancelled on this PC. If the console already queued it, remove it in the console's notifications.",
+                TransferPhase.Failed => Monitor.FailureText.Length > 0 ? Monitor.FailureText : "Failed to send the package.",
+                TransferPhase.Cancelled => Monitor.CancelledOnConsole
+                    ? "Cancelled. The download was also removed from the console."
+                    : "Cancelled on this PC. If the console already queued it, remove it in the console's notifications.",
                 _ => ""
             };
         }
@@ -564,6 +608,9 @@ namespace DirectPackageInstaller.ViewModels
             }
         }
 
+        /// <summary>Todos os itens da biblioteca, sem filtro de busca.</summary>
+        public IReadOnlyList<LibraryItem> LibraryItems => _libraryAll;
+
         public void ClearLibrary()
         {
             _libraryAll.Clear();
@@ -575,6 +622,7 @@ namespace DirectPackageInstaller.ViewModels
         {
             Item.IsSent = Item.TitleId.Length > 0 && History.Any(x => x.Delivered
                 && x.TitleId == Item.TitleId && x.Version == Item.Version);
+            Item.RpiReady = ConsoleHasRpi;
 
             _libraryAll.Add(Item);
 

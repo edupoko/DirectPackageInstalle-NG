@@ -12,6 +12,9 @@ namespace DirectPackageInstaller;
 public class LibraryItem : ReactiveObject
 {
     private bool _isSent;
+    private bool _installed;
+    private bool _rpiReady;
+    private string _installedSize = "";
 
     /// <summary>Já enviado ao console (consta no histórico).</summary>
     public bool IsSent
@@ -22,12 +25,54 @@ public class LibraryItem : ReactiveObject
 
     public string Path { get; init; } = "";
     public string FileName { get; init; } = "";
+    public string ContentId { get; init; } = "";
     public string Title { get; init; } = "";
     public string TitleId { get; init; } = "";
     public string Version { get; init; } = "";
     public string Kind { get; init; } = "";
     public string SizeText { get; init; } = "";
     public Bitmap? Icon { get; init; }
+
+    /// <summary>O console confirmou que o jogo está instalado (só jogos base; consulta pelo RPI).</summary>
+    public bool Installed
+    {
+        get => _installed;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _installed, value);
+            this.RaisePropertyChanged(nameof(CanUninstall));
+        }
+    }
+
+    /// <summary>Tamanho ocupado no console, ex.: "6.79 GB".</summary>
+    public string InstalledSize
+    {
+        get => _installedSize;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _installedSize, value ?? "");
+            this.RaisePropertyChanged(nameof(InstalledText));
+        }
+    }
+
+    public string InstalledText => InstalledSize.Length > 0 ? "INSTALLED  " + InstalledSize : "INSTALLED";
+
+    /// <summary>O console tem o Remote Package Installer ativo (necessário para desinstalar).</summary>
+    public bool RpiReady
+    {
+        get => _rpiReady;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _rpiReady, value);
+            this.RaisePropertyChanged(nameof(CanUninstall));
+        }
+    }
+
+    /// <summary>
+    /// Jogos só mostram o botão quando o console confirmou que estão instalados. Atualizações e DLCs
+    /// não têm essa consulta no RPI, então mostram o botão sempre que o RPI estiver ativo.
+    /// </summary>
+    public bool CanUninstall => RpiReady && (Kind == "GAME" ? Installed : Kind is "UPDATE" or "DLC");
 
     /// <summary>TITLE_ID e versão, ex.: SRCH00001  ·  v5.11</summary>
     public string Subtitle => string.Join("  ·  ", new[] { TitleId, Version.Length > 0 ? "v" + Version : "" }.Where(x => x.Length > 0));
@@ -107,6 +152,7 @@ public static class LibraryScanner
             Path = File,
             FileName = FileName,
             Title = string.IsNullOrWhiteSpace(Info.Value.FriendlyName) ? FileName : Info.Value.FriendlyName,
+            ContentId = Info.Value.ContentID ?? "",
             TitleId = Info.Value.TitleID ?? "",
             Version = Param("VERSION") ?? Param("APP_VER") ?? "",
             Kind = KindOf(Info.Value.ContentType),

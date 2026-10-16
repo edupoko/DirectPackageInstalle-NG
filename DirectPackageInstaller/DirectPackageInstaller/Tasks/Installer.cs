@@ -36,9 +36,17 @@ namespace DirectPackageInstaller.Tasks
         /// <summary>Definido pela interface para interromper a preparação de um envio.</summary>
         public static volatile bool CancelRequested = false;
 
+        /// <summary>Tarefa criada no console pelo Remote Package Installer no último envio (null se outro método foi usado).</summary>
+        public static int? LastRpiTaskId { get; private set; }
+
+        /// <summary>Console que recebeu <see cref="LastRpiTaskId"/>.</summary>
+        public static string? LastRpiIp { get; private set; }
+
         public static async Task<bool> PushPackage(Settings Config, Source InputType, Stream? PKGStream, string URL, IArchive? Decompressor, DecompressorHelperStream[]? DecompressorStreams, Func<string, Task> SetStatus, Func<string> GetStatus, bool Silent)
         {
             CancelRequested = false;
+            LastRpiTaskId = null;
+            LastRpiIp = null;
 
             if (string.IsNullOrEmpty(Config.PSIP) || Config.PSIP == "0.0.0.0")
             {
@@ -303,7 +311,7 @@ namespace DirectPackageInstaller.Tasks
             try
             {
                 using var client = new HttpClient();
-                var requestUri = $"http://{Config.PSIP}:12800/api/install";
+                var requestUri = $"http://{Config.PSIP}:{RpiClient.Port}/api/install";
 
 
                 var EscapedURL = HttpUtility.UrlEncode(URL.Replace("https://", "http://"));
@@ -320,6 +328,16 @@ namespace DirectPackageInstaller.Tasks
 
                 if (Result.Contains("\"success\""))
                 {
+                    //O RPI devolve o número da tarefa criada no console: com ele dá para acompanhar,
+                    //pausar, cancelar e ver erros reais da instalação
+                    var Reply = RpiClient.Parse(Result);
+
+                    if (Reply.Fields.ContainsKey("task_id"))
+                    {
+                        LastRpiTaskId = (int)Reply.GetNumber("task_id");
+                        LastRpiIp = Config.PSIP;
+                    }
+
                     if (!Silent)
                         Toast.Show("Package sent", CurrentPKG.FriendlyName ?? "", ToastKind.Success);
 
