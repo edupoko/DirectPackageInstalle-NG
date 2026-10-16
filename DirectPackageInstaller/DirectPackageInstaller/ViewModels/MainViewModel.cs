@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using ReactiveUI;
@@ -117,6 +119,153 @@ namespace DirectPackageInstaller.ViewModels
         {
             get => _DHCPService;
             set => this.RaiseAndSetIfChanged(ref _DHCPService, value);
+        }
+
+        // ---- Biblioteca: pasta fixa com os PKGs organizados em grade ----
+
+        private readonly List<LibraryItem> _libraryAll = new List<LibraryItem>();
+
+        /// <summary>Itens exibidos na grade (já filtrados pela busca e ordenados por título).</summary>
+        public ObservableCollection<LibraryItem> Library { get; } = new ObservableCollection<LibraryItem>();
+
+        private string? _libraryPath = null;
+        public string? LibraryPath
+        {
+            get => _libraryPath;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _libraryPath, value);
+                RaiseLibraryTexts();
+            }
+        }
+
+        private string _librarySearch = "";
+        public string LibrarySearch
+        {
+            get => _librarySearch;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _librarySearch, value ?? "");
+                ApplyLibraryFilter();
+            }
+        }
+
+        private bool _showLibrary = false;
+        public bool ShowLibrary
+        {
+            get => _showLibrary;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _showLibrary, value);
+                this.RaisePropertyChanged(nameof(ShowPackage));
+            }
+        }
+
+        public bool ShowPackage => !_showLibrary;
+
+        private bool _isScanningLibrary = false;
+        public bool IsScanningLibrary
+        {
+            get => _isScanningLibrary;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _isScanningLibrary, value);
+                RaiseLibraryTexts();
+            }
+        }
+
+        public bool HasLibraryPath => !string.IsNullOrWhiteSpace(LibraryPath);
+
+        public bool ShowLibraryEmpty => Library.Count == 0;
+
+        public string LibraryTabText => _libraryAll.Count > 0 ? $"LIBRARY  {_libraryAll.Count}" : "LIBRARY";
+
+        public string LibraryPathText => HasLibraryPath ? LibraryPath! : "No folder selected";
+
+        public string LibraryEmptyText
+        {
+            get
+            {
+                if (!HasLibraryPath)
+                    return "Choose the folder where your .pkg files are";
+
+                if (IsScanningLibrary)
+                    return "Scanning...";
+
+                return _libraryAll.Count > 0 ? "No package matches your search" : "No .pkg files found in this folder";
+            }
+        }
+
+        public string LibraryStatus
+        {
+            get
+            {
+                if (IsScanningLibrary)
+                    return $"Scanning...  {_libraryAll.Count} found";
+
+                return _libraryAll.Count > 0 ? $"{Library.Count} of {_libraryAll.Count} packages" : "";
+            }
+        }
+
+        public void ClearLibrary()
+        {
+            _libraryAll.Clear();
+            Library.Clear();
+            RaiseLibraryTexts();
+        }
+
+        public void AddLibraryItem(LibraryItem Item)
+        {
+            _libraryAll.Add(Item);
+
+            if (MatchesSearch(Item))
+                InsertSorted(Item);
+
+            RaiseLibraryTexts();
+        }
+
+        public void FinishLibraryScan() => IsScanningLibrary = false;
+
+        private bool MatchesSearch(LibraryItem Item)
+        {
+            var Query = (LibrarySearch ?? "").Trim();
+
+            if (Query.Length == 0)
+                return true;
+
+            return Item.Title.Contains(Query, StringComparison.OrdinalIgnoreCase)
+                || Item.TitleId.Contains(Query, StringComparison.OrdinalIgnoreCase)
+                || Item.FileName.Contains(Query, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void InsertSorted(LibraryItem Item)
+        {
+            int Index = 0;
+
+            while (Index < Library.Count && string.Compare(Library[Index].Title, Item.Title, StringComparison.OrdinalIgnoreCase) <= 0)
+                Index++;
+
+            Library.Insert(Index, Item);
+        }
+
+        private void ApplyLibraryFilter()
+        {
+            Library.Clear();
+
+            foreach (var Item in _libraryAll.Where(MatchesSearch).OrderBy(x => x.Title, StringComparer.OrdinalIgnoreCase))
+                Library.Add(Item);
+
+            RaiseLibraryTexts();
+        }
+
+        private void RaiseLibraryTexts()
+        {
+            this.RaisePropertyChanged(nameof(HasLibraryPath));
+            this.RaisePropertyChanged(nameof(ShowLibraryEmpty));
+            this.RaisePropertyChanged(nameof(LibraryTabText));
+            this.RaisePropertyChanged(nameof(LibraryPathText));
+            this.RaisePropertyChanged(nameof(LibraryEmptyText));
+            this.RaisePropertyChanged(nameof(LibraryStatus));
         }
 
         private List<PkgParamInfo> _PKGParams = new List<PkgParamInfo>();

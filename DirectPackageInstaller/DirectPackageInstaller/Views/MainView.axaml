@@ -14,6 +14,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
             <RowDefinition Height="40"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition/>
             <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
@@ -116,7 +117,68 @@
         </Grid>
 
 
-        <Grid Grid.Row="2" Grid.ColumnSpan="2" Name="PreviewGrid">
+        <!-- Abas: Biblioteca (grade da pasta) e Pacote (detalhes do arquivo carregado) -->
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="5,2,5,8">
+            <Button Classes="tab" Classes.active="{Binding ShowLibrary}" Click="TabLibraryClick" Content="{Binding LibraryTabText}"/>
+            <Button Classes="tab" Classes.active="{Binding ShowPackage}" Click="TabPackageClick" Content="PACKAGE"/>
+        </StackPanel>
+
+        <!-- Biblioteca -->
+        <Grid Grid.Row="3" Grid.ColumnSpan="2" Name="LibraryPanel" IsVisible="{Binding ShowLibrary}"
+              RowDefinitions="Auto,*" Margin="5,0,5,0">
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,260" Margin="0,0,0,10">
+                <TextBlock Grid.Column="0" Text="{Binding LibraryPathText}" Classes="caption"
+                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <Button Grid.Column="1" Content="CHOOSE FOLDER" Click="LibraryChooseClick" Padding="12,6" Margin="0,0,6,0"/>
+                <Button Grid.Column="2" Content="REFRESH" Click="LibraryRefreshClick" Padding="12,6" Margin="0,0,6,0"
+                        IsEnabled="{Binding HasLibraryPath}"/>
+                <TextBox Grid.Column="3" Text="{Binding LibrarySearch, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Watermark="Search packages" VerticalContentAlignment="Center"/>
+            </Grid>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Library}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Width="280" Margin="0,0,10,10" Padding="12"
+                                    BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1">
+                                <StackPanel Spacing="12">
+                                    <Grid ColumnDefinitions="64,*">
+                                        <Border Width="64" Height="64" ClipToBounds="True"
+                                                Background="{DynamicResource SurfaceHoverBrush}">
+                                            <Image Source="{Binding Icon}" Stretch="UniformToFill"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Margin="12,0,0,0" Spacing="3" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap"
+                                                       MaxLines="2" TextTrimming="CharacterEllipsis" Margin="0"/>
+                                            <TextBlock Text="{Binding Subtitle}" Classes="caption" Margin="0"/>
+                                            <TextBlock Text="{Binding Details}" Classes="caption" Margin="0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Button Content="OPEN" Classes="primary" HorizontalAlignment="Stretch"
+                                            Padding="0,7" Click="LibraryItemClick"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <StackPanel Grid.Row="1" IsVisible="{Binding ShowLibraryEmpty}" VerticalAlignment="Center"
+                        HorizontalAlignment="Center" Spacing="12">
+                <TextBlock Text="{Binding LibraryEmptyText}" Foreground="{DynamicResource TextMutedBrush}"
+                           HorizontalAlignment="Center"/>
+                <Button Content="CHOOSE FOLDER" Classes="primary" Click="LibraryChooseClick" Padding="18,8"
+                        HorizontalAlignment="Center" IsVisible="{Binding !HasLibraryPath}"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="3" Grid.ColumnSpan="2" Name="PreviewGrid" IsVisible="{Binding ShowPackage}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="330"/>
                 <ColumnDefinition Width="5"/>
@@ -172,7 +234,7 @@
             </Grid>
         </Grid>
 
-        <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Grid.Column="0" Name="Status" Classes="caption"/>
+        <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Grid.Column="0" Name="Status" Classes="caption"/>
     </Grid>
     <UserControl.Styles>
         <Style Selector="CheckBox">

@@ -1,4 +1,6 @@
 using System;
+using Avalonia.Platform.Storage;
+using System.Threading;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -124,6 +126,117 @@ namespace DirectPackageInstaller.Views
 
         /// <summary>Liga/desliga o serviço DHCP, com a mesma confirmação do menu.</summary>
         public void ToggleDhcpService() => BtnDHCPServiceOnClick(null, new RoutedEventArgs());
+        // ---- Biblioteca ----
+
+        private CancellationTokenSource? LibraryCts;
+
+        /// <summary>Lê novamente a pasta da biblioteca em segundo plano.</summary>
+        public async Task RefreshLibrary()
+        {
+            if (Model == null)
+                return;
+
+            LibraryCts?.Cancel();
+            var Cts = LibraryCts = new CancellationTokenSource();
+
+            Model.ClearLibrary();
+
+            var Root = Model.LibraryPath;
+
+            if (string.IsNullOrWhiteSpace(Root) || !Directory.Exists(Root))
+            {
+                Model.FinishLibraryScan();
+                return;
+            }
+
+            Model.IsScanningLibrary = true;
+
+            try
+            {
+                await Task.Run(() => LibraryScanner.Scan(Root, Item =>
+                {
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        if (!Cts.IsCancellationRequested)
+                            Model.AddLibraryItem(Item);
+                    });
+                }, Cts.Token));
+            }
+            catch
+            {
+            }
+            finally
+            {
+                if (!Cts.IsCancellationRequested)
+                    Dispatcher.UIThread.Post(() => Model.FinishLibraryScan());
+            }
+        }
+
+        /// <summary>Abre o seletor de pastas e define a pasta da biblioteca.</summary>
+        public async Task ChooseLibraryFolder()
+        {
+            if (Model == null)
+                return;
+
+            var Provider = TopLevel.GetTopLevel(this)?.StorageProvider;
+
+            if (Provider is not { CanPickFolder: true })
+            {
+                await MessageBox.ShowAsync("Folder selection isn't available on this platform.\nType the folder path in the Settings instead.", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var Result = await Provider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Select the folder with your PKG files",
+                AllowMultiple = false
+            });
+
+            var Folder = Result.FirstOrDefault()?.TryGetLocalPath();
+
+            if (string.IsNullOrWhiteSpace(Folder))
+                return;
+
+            Model.LibraryPath = Folder;
+            Model.ShowLibrary = true;
+        }
+
+        private void TabLibraryClick(object? sender, RoutedEventArgs e)
+        {
+            if (Model != null)
+                Model.ShowLibrary = true;
+        }
+
+        private void TabPackageClick(object? sender, RoutedEventArgs e)
+        {
+            if (Model != null)
+                Model.ShowLibrary = false;
+        }
+
+        private void LibraryChooseClick(object? sender, RoutedEventArgs e) => _ = ChooseLibraryFolder();
+
+        private void LibraryRefreshClick(object? sender, RoutedEventArgs e) => _ = RefreshLibrary();
+
+        private void LibraryItemClick(object? sender, RoutedEventArgs e)
+        {
+            if (Model == null || (sender as Control)?.DataContext is not LibraryItem Item)
+                return;
+
+            Model.ShowLibrary = false;
+
+            //Já carregado: só mostra os detalhes (carregar de novo acionaria a instalação)
+            if (Model.CurrentURL == Item.Path && InputType != Source.NONE)
+                return;
+
+            if (Model.CurrentURL != Item.Path)
+            {
+                BatchList.Clear();
+                Model.CurrentURL = Item.Path;
+            }
+
+            App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
+        }
+
         public async Task OnShown(MainWindow? Parent)
         {
             if (Model == null)
@@ -161,6 +274,7 @@ namespace DirectPackageInstaller.Views
                 App.Config.ShowTransferProgress = string.IsNullOrWhiteSpace(ShowTransferProgress) || IniReader.GetBooleanValue("ShowTransferProgress");
                 App.Config.SkipUpdateCheck = IniReader.GetBooleanValue("SkipUpdateCheck");
                 App.Config.AutoSplitPKG = IniReader.GetBooleanValue("AutoSplitPKG");
+                App.Config.LibraryPath = IniReader.GetValue("LibraryPath");
 
                 App.Config.PayloadPort = IniReader.GetIntValue("PayloadPort");
                 
@@ -220,6 +334,7 @@ namespace DirectPackageInstaller.Views
             Model.AllDebridApiKey = App.Config.AllDebridApiKey;
             Model.RealDebridApiKey = App.Config.RealDebridApiKey;
             Model.DebridLinkApiKey = App.Config.DebridLinkApiKey;
+            Model.LibraryPath = App.Config.LibraryPath;
              
             if (App.Config.SearchPS4 || string.IsNullOrEmpty(App.Config.PSIP))
             {
@@ -250,6 +365,10 @@ namespace DirectPackageInstaller.Views
              }
 
              Model.PropertyChanged += ModelOnPropertyChanged;
+
+             //Com uma pasta configurada, abre direto na biblioteca
+             Model.ShowLibrary = Model.HasLibraryPath;
+             _ = RefreshLibrary();
              
              App.Callback(async () =>
              {
@@ -817,9 +936,21 @@ namespace DirectPackageInstaller.Views
         {
             if (Model == null)
                 return;
-            
+
+            //Notificações da biblioteca e do resumo do pacote não são configurações
+            if (e.PropertyName is { } Name && Name != "LibraryPath"
+                && (Name.StartsWith("Library") || Name.StartsWith("Pkg") || Name == "HasPkg"
+                    || Name == "ShowLibrary" || Name == "ShowPackage" || Name == "HasLibraryPath"
+                    || Name == "ShowLibraryEmpty" || Name == "IsScanningLibrary"))
+                return;
+
             switch (e.PropertyName)
             {
+                case "LibraryPath":
+                    App.Config.LibraryPath = Model.LibraryPath;
+                    App.SaveSettings();
+                    _ = RefreshLibrary();
+                    return;
                 case "ProxyMode":
                     App.Config.ProxyDownload = Model.ProxyMode;
                     break;
