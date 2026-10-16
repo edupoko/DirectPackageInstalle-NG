@@ -5,7 +5,7 @@
              xmlns:viewModels="clr-namespace:DirectPackageInstaller.ViewModels"
              mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="200"
              x:Class="DirectPackageInstaller.Views.LinkListView"
-             Background="#171C2C">
+             Background="{DynamicResource AppBackgroundBrush}">
     <Design.DataContext>
         <viewModels:LinkListViewModel/>
     </Design.DataContext>

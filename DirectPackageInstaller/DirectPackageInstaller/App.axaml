@@ -4,6 +4,11 @@
              x:Class="DirectPackageInstaller.App"
 			 RequestedThemeVariant="Dark">
     
+    <Application.Resources>
+        <!-- Cor de fundo das telas. Trocar aqui altera todas as views. -->
+        <SolidColorBrush x:Key="AppBackgroundBrush">#171C2C</SolidColorBrush>
+    </Application.Resources>
+
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
