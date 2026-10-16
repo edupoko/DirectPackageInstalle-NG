@@ -7,6 +7,14 @@
     <Application.Resources>
         <!-- Cor de fundo das telas. Trocar aqui altera todas as views. -->
         <SolidColorBrush x:Key="AppBackgroundBrush">#171C2C</SolidColorBrush>
+        <SolidColorBrush x:Key="SurfaceHoverBrush">#232A3F</SolidColorBrush>
+        <SolidColorBrush x:Key="BorderStrongBrush">#4A5270</SolidColorBrush>
+        <SolidColorBrush x:Key="TextPrimaryBrush">#FFFFFF</SolidColorBrush>
+        <SolidColorBrush x:Key="TextMutedBrush">#8D96B2</SolidColorBrush>
+        <SolidColorBrush x:Key="PrimaryBrush">#FFFFFF</SolidColorBrush>
+        <SolidColorBrush x:Key="PrimaryHoverBrush">#DCE0EC</SolidColorBrush>
+        <SolidColorBrush x:Key="OnPrimaryBrush">#0B0E18</SolidColorBrush>
+        <FontFamily x:Key="MonoFontFamily">Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, monospace</FontFamily>
     </Application.Resources>
 
     <Application.DataTemplates>
@@ -16,5 +24,6 @@
 	<Application.Styles>
 		<FluentTheme/>
 		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+			<StyleInclude Source="avares://DirectPackageInstaller/Styles/Theme.axaml"/>
 	</Application.Styles>
 </Application>
