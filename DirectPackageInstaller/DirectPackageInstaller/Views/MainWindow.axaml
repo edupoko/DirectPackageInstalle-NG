@@ -29,6 +29,13 @@
                                    Foreground="{DynamicResource TextPrimaryBrush}"
                                    Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Name="btnRestartTitle" Classes="window" Click="RestartClick" ToolTip.Tip="Restart server">
+                                <Path Classes="icon" Data="{StaticResource IconRestart}"/>
+                            </Button>
+                            <Button Name="btnSettingsTitle" Classes="window" Click="SettingsClick" ToolTip.Tip="Settings">
+                                <Path Classes="icon" Data="{StaticResource IconSettings}"/>
+                            </Button>
+                            <Border Width="1" Margin="6,9" Background="{DynamicResource BorderStrongBrush}"/>
                             <Button Name="btnMinimize" Classes="window" Click="MinimizeClick" ToolTip.Tip="Minimize">
                                 <Path Data="M0,5 L10,5" Classes="glyph"/>
                             </Button>
@@ -43,6 +50,14 @@
                 </Border>
                 <views:MainView Name="View" Grid.Row="1"/>
             </Grid>
+        </Border>
+
+        <!-- Diálogo de configurações: cobre a janela e escurece o fundo -->
+        <Border Name="SettingsOverlay" IsVisible="False" Background="#A0000000"
+                PointerPressed="SettingsBackdropPressed">
+            <views:SettingsView Name="Settings" Margin="24" Width="520"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                PointerPressed="SettingsContentPressed"/>
         </Border>
 
         <!-- Alças de redimensionamento (a janela não tem a moldura nativa) -->

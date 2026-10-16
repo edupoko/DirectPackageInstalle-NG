@@ -23,6 +23,10 @@ namespace DirectPackageInstaller.Views
             View = this.Find<MainView>("View");
             View.DataContext = new MainViewModel();
 
+            Settings.CloseRequested += HideSettings;
+            Settings.RestartServerRequested += () => View.RestartServer();
+            Settings.DhcpToggleRequested += () => View.ToggleDhcpService();
+
             Opened += MainWindowOpened;
             Closing += MainWindowClosing;
         }
@@ -58,6 +62,21 @@ namespace DirectPackageInstaller.Views
 
             WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
         }
+
+        private void SettingsClick(object? sender, RoutedEventArgs e)
+        {
+            Settings.DataContext = View.DataContext;
+            SettingsOverlay.IsVisible = true;
+        }
+
+        private void HideSettings() => SettingsOverlay.IsVisible = false;
+
+        // Clique fora do diálogo fecha; clique dentro não propaga ao fundo
+        private void SettingsBackdropPressed(object? sender, PointerPressedEventArgs e) => HideSettings();
+
+        private void SettingsContentPressed(object? sender, PointerPressedEventArgs e) => e.Handled = true;
+
+        private void RestartClick(object? sender, RoutedEventArgs e) => View.RestartServer();
 
         private void MinimizeClick(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 
