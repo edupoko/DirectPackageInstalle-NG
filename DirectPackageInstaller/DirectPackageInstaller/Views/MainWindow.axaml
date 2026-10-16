@@ -7,8 +7,81 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         Width="800"
         Height="450"
+        MinWidth="480"
+        MinHeight="320"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        Background="{DynamicResource AppBackgroundBrush}"
         x:Class="DirectPackageInstaller.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="DirectPackageInstaller">
-        <views:MainView Name="View"/>
+    <Grid>
+        <!-- Moldura da janela: borda fina, barra de título própria e conteúdo -->
+        <Border Name="WindowFrame" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1">
+            <Grid RowDefinitions="Auto,*">
+                <Border Name="TitleBar" Grid.Row="0" Height="36"
+                        Background="{DynamicResource AppBackgroundBrush}"
+                        BorderBrush="{DynamicResource BorderStrongBrush}"
+                        BorderThickness="0,0,0,1"
+                        PointerPressed="TitleBarPressed">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Classes="caption" Margin="12,0,0,0"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Name="btnMinimize" Classes="window" Click="MinimizeClick" ToolTip.Tip="Minimize">
+                                <Path Data="M0,5 L10,5" Classes="glyph"/>
+                            </Button>
+                            <Button Name="btnMaximize" Classes="window" Click="MaximizeClick" ToolTip.Tip="Maximize">
+                                <Path Name="MaximizeGlyph" Data="M0.5,0.5 L9.5,0.5 L9.5,9.5 L0.5,9.5 Z" Classes="glyph"/>
+                            </Button>
+                            <Button Name="btnClose" Classes="window close" Click="CloseClick" ToolTip.Tip="Close">
+                                <Path Data="M0,0 L10,10 M10,0 L0,10" Classes="glyph"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <views:MainView Name="View" Grid.Row="1"/>
+            </Grid>
+        </Border>
+
+        <!-- Alças de redimensionamento (a janela não tem a moldura nativa) -->
+        <Grid Name="ResizeGrips" IsHitTestVisible="True">
+            <Border Tag="North" Height="4" VerticalAlignment="Top" Margin="8,0" Background="Transparent" Cursor="SizeNorthSouth" PointerPressed="ResizeGripPressed"/>
+            <Border Tag="South" Height="4" VerticalAlignment="Bottom" Margin="8,0" Background="Transparent" Cursor="SizeNorthSouth" PointerPressed="ResizeGripPressed"/>
+            <Border Tag="West" Width="4" HorizontalAlignment="Left" Margin="0,8" Background="Transparent" Cursor="SizeWestEast" PointerPressed="ResizeGripPressed"/>
+            <Border Tag="East" Width="4" HorizontalAlignment="Right" Margin="0,8" Background="Transparent" Cursor="SizeWestEast" PointerPressed="ResizeGripPressed"/>
+            <Border Tag="NorthWest" Width="8" Height="8" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Transparent" Cursor="TopLeftCorner" PointerPressed="ResizeGripPressed"/>
+            <Border Tag="NorthEast" Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" Cursor="TopRightCorner" PointerPressed="ResizeGripPressed"/>
+            <Border Tag="SouthWest" Width="8" Height="8" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" Cursor="BottomLeftCorner" PointerPressed="ResizeGripPressed"/>
+            <Border Tag="SouthEast" Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Transparent" Cursor="BottomRightCorner" PointerPressed="ResizeGripPressed"/>
+        </Grid>
+    </Grid>
+
+    <Window.Styles>
+        <!-- Botões da barra de título: quadrados, sem contorno -->
+        <Style Selector="Button.window">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="Button.window:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="Button.window.close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#C42B1C"/>
+        </Style>
+        <Style Selector="Path.glyph">
+            <Setter Property="Stroke" Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="StrokeThickness" Value="1"/>
+            <Setter Property="Stretch" Value="None"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </Window.Styles>
 </Window>
