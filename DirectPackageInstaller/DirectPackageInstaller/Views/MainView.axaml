@@ -10,7 +10,7 @@
   <Design.DataContext>
     <viewModels:MainViewModel />
   </Design.DataContext>
-    <Grid DragDrop.AllowDrop="True" Name="MainViewGrid">
+    <Grid DragDrop.AllowDrop="True" Name="MainViewGrid" Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
             <RowDefinition Height="40"/>

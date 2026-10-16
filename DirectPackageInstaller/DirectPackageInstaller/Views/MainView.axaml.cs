@@ -112,6 +112,9 @@ namespace DirectPackageInstaller.Views
             
             PreviewGrid.PropertyChanged += PreviewGridOnPropertyChanged;
 
+            //A tela inteira aceita soltar, inclusive as áreas sem fundo próprio
+            DragDrop.SetAllowDrop(this, true);
+
             AddHandler(DragDrop.DragOverEvent, DragOver);
             AddHandler(DragDrop.DropEvent, DropEventEvent);
 
@@ -1167,32 +1170,40 @@ namespace DirectPackageInstaller.Views
 
         private void DropEventEvent(object? sender, DragEventArgs e)
         {
+            //Arquivos primeiro: alguns gerenciadores (ex.: Dolphin) enviam o arquivo
+            //arrastado também como texto, e o ramo de texto só aceita links http.
+            if (e.Data.Contains(DataFormats.FileNames))
+            {
+                var Files = e.Data.GetFileNames()?.ToArray() ?? Array.Empty<string>();
+
+                if (Files.Length > 0)
+                {
+                    BatchList.Clear();
+                    BatchList.AddRange(Files.Select(x => (x, Path.GetFileName(x))));
+
+                    ListEntries(Files);
+
+                    App.Callback(() => {
+                        Model.CurrentURL = Files.First();
+                        App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
+                    });
+                    return;
+                }
+            }
+
             if (e.Data.Contains(DataFormats.Text))
             {
                 var Links = e.Data.GetText()!.Split('\n', '\r')
                     .Where(x => !string.IsNullOrEmpty(x.Trim()) && x.Trim().StartsWith("http"))
                     .Select(x => x.Trim()).ToArray();
 
+                if (Links.Length == 0)
+                    return;
+
                 _ = URLAnalyzer.Analyze(Links, false);
 
                 App.Callback(() => {
                     Model.CurrentURL = Links.First();
-                    App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
-                });
-                return;
-            }
-
-            if (e.Data.Contains(DataFormats.FileNames))
-            {
-                var Files = e.Data.GetFileNames()!.ToArray();
-
-                BatchList.Clear();
-                BatchList.AddRange(Files.Select(x => (x, Path.GetFileName(x))));
-
-                ListEntries(Files);
-
-                App.Callback(() => {
-                    Model.CurrentURL = Files.First();
                     App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
                 });
             }
