@@ -12,18 +12,18 @@
   </Design.DataContext>
     <Grid Name="MainViewGrid">
         <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="330"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
-        <Menu Grid.ColumnSpan="2">
+        <Menu Name="MainMenu" Grid.ColumnSpan="2">
             <MenuItem Header="_Options" Name="OptionsMenu">
                 <MenuItem Header="_Proxy Downloads" Name="btnProxyDownload">
                     <MenuItem.Icon>
@@ -105,38 +105,39 @@
             </MenuItem>
         </Menu>
 
-        <Grid Grid.Row="1" Grid.ColumnSpan="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"></ColumnDefinition>
-                <ColumnDefinition Width="*"></ColumnDefinition>
-                <ColumnDefinition Width="auto"></ColumnDefinition>
-            </Grid.ColumnDefinitions>
-            <Label Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="5,0,0,0">URL:</Label>
-            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding CurrentURL, Mode=TwoWay}" Name="tbURL"></TextBox>
-            <Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" Margin="5,0,5,0" Name="btnLoad" Classes="primary">Open</Button>
-        </Grid>
-
-
         <!-- Abas: Biblioteca (grade da pasta) e Pacote (detalhes do arquivo carregado) -->
-        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="5,2,5,8">
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="12,12,12,12">
             <Button Classes="tab" Classes.active="{Binding ShowLibrary}" Click="TabLibraryClick" Content="{Binding LibraryTabText}"/>
             <Button Classes="tab" Classes.active="{Binding ShowPackage}" Click="TabPackageClick" Content="PACKAGE"/>
         </StackPanel>
 
-        <!-- Biblioteca -->
-        <Grid Grid.Row="3" Grid.ColumnSpan="2" Name="LibraryPanel" IsVisible="{Binding ShowLibrary}"
-              RowDefinitions="Auto,*" Margin="5,0,5,0">
-            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,260" Margin="0,0,0,10">
-                <TextBlock Grid.Column="0" Text="{Binding LibraryPathText}" Classes="caption"
-                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                <Button Grid.Column="1" Content="CHOOSE FOLDER" Click="LibraryChooseClick" Padding="12,6" Margin="0,0,6,0"/>
-                <Button Grid.Column="2" Content="REFRESH" Click="LibraryRefreshClick" Padding="12,6" Margin="0,0,6,0"
-                        IsEnabled="{Binding HasLibraryPath}"/>
-                <TextBox Grid.Column="3" Text="{Binding LibrarySearch, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Watermark="Search packages" VerticalContentAlignment="Center"/>
-            </Grid>
+        <!-- Barra do Pacote: URL ou caminho e a ação principal -->
+        <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Margin="12,0,12,12"
+              IsVisible="{Binding ShowPackage}">
+            <TextBox Grid.Column="0" Name="tbURL" Text="{Binding CurrentURL, Mode=TwoWay}"
+                     Watermark="URL or file path" MinHeight="36" Margin="0" VerticalContentAlignment="Center"/>
+            <Button Grid.Column="1" Name="btnLoad" Classes="primary" Height="36" MinWidth="104" Padding="22,0"
+                    Margin="8,0,0,0" VerticalAlignment="Center">Open</Button>
+        </Grid>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <!-- Barra da Biblioteca: busca, pasta e ações (só aparece com pasta definida) -->
+        <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnDefinitions="280,*,Auto,Auto" Margin="12,0,12,12"
+              IsVisible="{Binding ShowLibraryToolbar}">
+            <TextBox Grid.Column="0" Text="{Binding LibrarySearch, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Watermark="Search packages" MinHeight="36" Margin="0" VerticalContentAlignment="Center"/>
+            <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center" Spacing="2">
+                <TextBlock Text="{Binding LibraryPathText}" Classes="caption" TextTrimming="CharacterEllipsis"
+                           Margin="0" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding LibraryStatus}" Classes="caption" FontSize="10" Margin="0"
+                           IsVisible="{Binding HasLibraryStatus}"/>
+            </StackPanel>
+            <Button Grid.Column="2" Content="REFRESH" Height="36" Padding="16,0" Margin="0,0,8,0" Click="LibraryRefreshClick"/>
+            <Button Grid.Column="3" Content="CHANGE FOLDER" Height="36" Padding="16,0" Click="LibraryChooseClick"/>
+        </Grid>
+
+        <!-- Biblioteca: grade de cartões ou estado vazio -->
+        <Grid Grid.Row="3" Grid.ColumnSpan="2" Name="LibraryPanel" IsVisible="{Binding ShowLibrary}" Margin="12,0,12,12">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding Library}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -145,7 +146,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Width="280" Margin="0,0,10,10" Padding="12"
+                            <Border Width="280" Margin="0,0,12,12" Padding="12"
                                     BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1">
                                 <StackPanel Spacing="12">
                                     <Grid ColumnDefinitions="64,*">
@@ -161,7 +162,7 @@
                                         </StackPanel>
                                     </Grid>
                                     <Button Content="OPEN" Classes="primary" HorizontalAlignment="Stretch"
-                                            Padding="0,7" Click="LibraryItemClick"/>
+                                            Padding="0,8" Click="LibraryItemClick"/>
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
@@ -169,16 +170,16 @@
                 </ItemsControl>
             </ScrollViewer>
 
-            <StackPanel Grid.Row="1" IsVisible="{Binding ShowLibraryEmpty}" VerticalAlignment="Center"
-                        HorizontalAlignment="Center" Spacing="12">
+            <StackPanel IsVisible="{Binding ShowLibraryEmpty}" VerticalAlignment="Center"
+                        HorizontalAlignment="Center" Spacing="16">
                 <TextBlock Text="{Binding LibraryEmptyText}" Foreground="{DynamicResource TextMutedBrush}"
-                           HorizontalAlignment="Center"/>
-                <Button Content="CHOOSE FOLDER" Classes="primary" Click="LibraryChooseClick" Padding="18,8"
-                        HorizontalAlignment="Center" IsVisible="{Binding !HasLibraryPath}"/>
+                           HorizontalAlignment="Center" Margin="0"/>
+                <Button Content="CHOOSE FOLDER" Classes="primary" Click="LibraryChooseClick" Height="36"
+                        Padding="22,0" HorizontalAlignment="Center" IsVisible="{Binding !HasLibraryPath}"/>
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Row="3" Grid.ColumnSpan="2" Name="PreviewGrid" IsVisible="{Binding ShowPackage}">
+        <Grid Grid.Row="3" Grid.ColumnSpan="2" Name="PreviewGrid" IsVisible="{Binding ShowPackage}" Margin="12,0,12,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="330"/>
                 <ColumnDefinition Width="5"/>
@@ -191,7 +192,7 @@
             <Grid Grid.Column="2" Name="PkgInfoPanel">
                 <StackPanel IsVisible="{Binding !HasPkg}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
                     <TextBlock Text="NO PACKAGE LOADED" Classes="caption" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Paste a URL or press Open to choose a .pkg file"
+                    <TextBlock Text="Paste a URL, press Open, or pick a package from the Library"
                                Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
                 </StackPanel>
 
@@ -234,7 +235,10 @@
             </Grid>
         </Grid>
 
-        <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Grid.Column="0" Name="Status" Classes="caption"/>
+        <Border Grid.Row="4" Grid.ColumnSpan="2" BorderBrush="{DynamicResource BorderStrongBrush}"
+                BorderThickness="0,1,0,0" Padding="12,8">
+            <TextBlock Name="Status" Classes="caption" Margin="0" TextTrimming="CharacterEllipsis"/>
+        </Border>
     </Grid>
     <UserControl.Styles>
         <Style Selector="CheckBox">

@@ -158,6 +158,7 @@ namespace DirectPackageInstaller.ViewModels
             {
                 this.RaiseAndSetIfChanged(ref _showLibrary, value);
                 this.RaisePropertyChanged(nameof(ShowPackage));
+                this.RaisePropertyChanged(nameof(ShowLibraryToolbar));
             }
         }
 
@@ -175,6 +176,9 @@ namespace DirectPackageInstaller.ViewModels
         }
 
         public bool HasLibraryPath => !string.IsNullOrWhiteSpace(LibraryPath);
+
+        /// <summary>A barra de busca/pasta só aparece na biblioteca e com uma pasta definida.</summary>
+        public bool ShowLibraryToolbar => _showLibrary && HasLibraryPath;
 
         public bool ShowLibraryEmpty => Library.Count == 0;
 
@@ -196,6 +200,9 @@ namespace DirectPackageInstaller.ViewModels
             }
         }
 
+        public bool HasLibraryStatus => LibraryStatus.Length > 0;
+
+        /// <summary>Só mostra algo quando há informação nova: varredura em andamento ou filtro ativo.</summary>
         public string LibraryStatus
         {
             get
@@ -203,7 +210,9 @@ namespace DirectPackageInstaller.ViewModels
                 if (IsScanningLibrary)
                     return $"Scanning...  {_libraryAll.Count} found";
 
-                return _libraryAll.Count > 0 ? $"{Library.Count} of {_libraryAll.Count} packages" : "";
+                return _libraryAll.Count > 0 && Library.Count != _libraryAll.Count
+                    ? $"{Library.Count} of {_libraryAll.Count} shown"
+                    : "";
             }
         }
 
@@ -261,11 +270,13 @@ namespace DirectPackageInstaller.ViewModels
         private void RaiseLibraryTexts()
         {
             this.RaisePropertyChanged(nameof(HasLibraryPath));
+            this.RaisePropertyChanged(nameof(ShowLibraryToolbar));
             this.RaisePropertyChanged(nameof(ShowLibraryEmpty));
             this.RaisePropertyChanged(nameof(LibraryTabText));
             this.RaisePropertyChanged(nameof(LibraryPathText));
             this.RaisePropertyChanged(nameof(LibraryEmptyText));
             this.RaisePropertyChanged(nameof(LibraryStatus));
+            this.RaisePropertyChanged(nameof(HasLibraryStatus));
         }
 
         private List<PkgParamInfo> _PKGParams = new List<PkgParamInfo>();

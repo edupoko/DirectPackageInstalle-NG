@@ -117,9 +117,18 @@ namespace DirectPackageInstaller.Views
 
             btnDHCPService.IsVisible = App.IsWindows;
 
-            //No desktop, as opções ficam no diálogo de configurações da janela
+            //No desktop, as opções ficam no diálogo de configurações da janela e o menu
+            //só aparece quando há pacotes em lote (menu Packages), sem deixar uma faixa vazia.
             OptionsMenu.IsVisible = App.IsSingleView;
+            UpdateMenuVisibility();
+            PackagesMenu.PropertyChanged += (_, e) =>
+            {
+                if (e.Property == IsVisibleProperty)
+                    UpdateMenuVisibility();
+            };
         }
+
+        private void UpdateMenuVisibility() => MainMenu.IsVisible = App.IsSingleView || PackagesMenu.IsVisible;
 
         /// <summary>Reinicia o servidor (usado pelo diálogo de configurações e pela barra de título).</summary>
         public void RestartServer() => RestartServer_OnClick(null, null);
@@ -939,7 +948,7 @@ namespace DirectPackageInstaller.Views
 
             //Notificações da biblioteca e do resumo do pacote não são configurações
             if (e.PropertyName is { } Name && Name != "LibraryPath"
-                && (Name.StartsWith("Library") || Name.StartsWith("Pkg") || Name == "HasPkg"
+                && (Name.StartsWith("Library") || Name.StartsWith("Pkg") || Name == "HasPkg" || Name == "HasLibraryStatus" || Name == "ShowLibraryToolbar"
                     || Name == "ShowLibrary" || Name == "ShowPackage" || Name == "HasLibraryPath"
                     || Name == "ShowLibraryEmpty" || Name == "IsScanningLibrary"))
                 return;
@@ -1290,6 +1299,7 @@ namespace DirectPackageInstaller.Views
             
             _ = URLAnalyzer.Analyze(Info.Links, false);
 
+            Model!.ShowLibrary = false;
             tbURL.Text = Info.Links.First();
             App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
         }
