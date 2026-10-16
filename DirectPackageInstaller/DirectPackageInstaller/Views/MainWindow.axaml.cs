@@ -23,6 +23,10 @@ namespace DirectPackageInstaller.Views
             View = this.Find<MainView>("View");
             View.DataContext = new MainViewModel();
 
+            Settings.CloseRequested += HideSettings;
+            Settings.RestartServerRequested += () => View.RestartServer();
+            Settings.DhcpToggleRequested += () => View.ToggleDhcpService();
+
             Opened += MainWindowOpened;
             Closing += MainWindowClosing;
         }
@@ -37,8 +41,8 @@ namespace DirectPackageInstaller.Views
 
         // ---- Barra de título e moldura próprias ----
 
-        private const string MaximizeGeometry = "M0.5,0.5 L9.5,0.5 L9.5,9.5 L0.5,9.5 Z";
-        private const string RestoreGeometry = "M2.5,0.5 L9.5,0.5 L9.5,7.5 M0.5,2.5 L7.5,2.5 L7.5,9.5 L0.5,9.5 Z";
+        private const string MaximizeGeometry = "M3.5,3.5 H12.5 V12.5 H3.5 Z";
+        private const string RestoreGeometry = "M5.5,3.5 H12.5 V10.5 M3.5,5.5 H10.5 V12.5 H3.5 Z";
 
         private void TitleBarPressed(object? sender, PointerPressedEventArgs e)
         {
@@ -58,6 +62,21 @@ namespace DirectPackageInstaller.Views
 
             WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
         }
+
+        private void SettingsClick(object? sender, RoutedEventArgs e)
+        {
+            Settings.DataContext = View.DataContext;
+            SettingsOverlay.IsVisible = true;
+        }
+
+        private void HideSettings() => SettingsOverlay.IsVisible = false;
+
+        // Clique fora do diálogo fecha; clique dentro não propaga ao fundo
+        private void SettingsBackdropPressed(object? sender, PointerPressedEventArgs e) => HideSettings();
+
+        private void SettingsContentPressed(object? sender, PointerPressedEventArgs e) => e.Handled = true;
+
+        private void RestartClick(object? sender, RoutedEventArgs e) => View.RestartServer();
 
         private void MinimizeClick(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 

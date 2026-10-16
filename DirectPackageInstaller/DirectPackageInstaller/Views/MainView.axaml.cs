@@ -116,7 +116,16 @@ namespace DirectPackageInstaller.Views
             AddHandler(DragDrop.DropEvent, DropEventEvent);
 
             btnDHCPService.IsVisible = App.IsWindows;
+
+            //No desktop, as opções ficam no diálogo de configurações da janela
+            OptionsMenu.IsVisible = App.IsSingleView;
         }
+
+        /// <summary>Reinicia o servidor (usado pelo diálogo de configurações e pela barra de título).</summary>
+        public void RestartServer() => RestartServer_OnClick(null, null);
+
+        /// <summary>Liga/desliga o serviço DHCP, com a mesma confirmação do menu.</summary>
+        public void ToggleDhcpService() => BtnDHCPServiceOnClick(null, new RoutedEventArgs());
         public async Task OnShown(MainWindow? Parent)
         {
             if (Model == null)

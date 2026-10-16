@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:DirectPackageInstaller.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="620"
+             x:Class="DirectPackageInstaller.Views.SettingsView">
+    <Design.DataContext>
+        <viewModels:MainViewModel/>
+    </Design.DataContext>
+
+    <Border Background="{DynamicResource AppBackgroundBrush}"
+            BorderBrush="{DynamicResource BorderStrongBrush}"
+            BorderThickness="1"
+            BoxShadow="0 4 24 0 #90000000">
+        <Grid RowDefinitions="Auto,*,Auto">
+
+            <!-- Cabeçalho -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="20,14,12,12">
+                <TextBlock Grid.Column="0" Text="SETTINGS" Classes="caption"
+                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Name="btnCloseSettings" Classes="window" Width="32" Height="28"
+                        ToolTip.Tip="Close">
+                    <Path Classes="icon" Data="{StaticResource IconClose}"/>
+                </Button>
+            </Grid>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="20,0,20,8">
+
+                    <TextBlock Classes="section" Text="NETWORK" Margin="0,4,0,8"/>
+                    <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto">
+                        <TextBlock Grid.Row="0" Text="Console IP" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PS4IP, Mode=TwoWay}" Watermark="192.168.0.10" Margin="0,0,0,8"/>
+                        <TextBlock Grid.Row="1" Text="This PC IP" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PCIP, Mode=TwoWay}" Watermark="192.168.0.20"/>
+                    </Grid>
+
+                    <TextBlock Classes="section" Text="DOWNLOADS"/>
+                    <CheckBox Content="Proxy downloads" IsChecked="{Binding ProxyMode, Mode=TwoWay}"/>
+                    <CheckBox Content="Segmented downloads" IsChecked="{Binding SegmentedMode, Mode=TwoWay}"/>
+                    <CheckBox Content="Show transfer progress" IsChecked="{Binding ShowTransferProgress, Mode=TwoWay}"/>
+
+                    <TextBlock Classes="section" Text="SERVICES"/>
+                    <CheckBox Content="Click'n Load (JDownloader) support" IsChecked="{Binding CNLService, Mode=TwoWay}"/>
+                    <CheckBox Name="cbDhcp" Content="DHCP server (changes network settings)"
+                              IsChecked="{Binding DHCPService, Mode=OneWay}"/>
+                    <Button Name="btnRestartServer" Content="Restart server" HorizontalAlignment="Left" Margin="0,10,0,0" Padding="14,6"/>
+
+                    <TextBlock Classes="section" Text="DEBRID SERVICES"/>
+                    <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto">
+                        <CheckBox Grid.Row="0" Content="AllDebrid" IsChecked="{Binding UseAllDebrid, Mode=TwoWay}"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" PasswordChar="•" Classes="revealPasswordButton"
+                                 Text="{Binding AllDebridApiKey, Mode=TwoWay}" Watermark="API key" Margin="0,0,0,8"/>
+                        <CheckBox Grid.Row="1" Content="RealDebrid" IsChecked="{Binding UseRealDebrid, Mode=TwoWay}"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" PasswordChar="•" Classes="revealPasswordButton"
+                                 Text="{Binding RealDebridApiKey, Mode=TwoWay}" Watermark="API key" Margin="0,0,0,8"/>
+                        <CheckBox Grid.Row="2" Content="DebridLink" IsChecked="{Binding UseDebridLink, Mode=TwoWay}"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" PasswordChar="•" Classes="revealPasswordButton"
+                                 Text="{Binding DebridLinkApiKey, Mode=TwoWay}" Watermark="API key"/>
+                    </Grid>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Rodapé -->
+            <Border Grid.Row="2" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="0,1,0,0" Padding="20,12">
+                <Button Name="btnDoneSettings" Classes="primary" Content="DONE" HorizontalAlignment="Right" Padding="28,7"/>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>
