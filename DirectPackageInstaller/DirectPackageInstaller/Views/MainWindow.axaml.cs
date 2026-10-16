@@ -41,8 +41,8 @@ namespace DirectPackageInstaller.Views
 
         // ---- Barra de título e moldura próprias ----
 
-        private const string MaximizeGeometry = "M0.5,0.5 L9.5,0.5 L9.5,9.5 L0.5,9.5 Z";
-        private const string RestoreGeometry = "M2.5,0.5 L9.5,0.5 L9.5,7.5 M0.5,2.5 L7.5,2.5 L7.5,9.5 L0.5,9.5 Z";
+        private const string MaximizeGeometry = "M3.5,3.5 H12.5 V12.5 H3.5 Z";
+        private const string RestoreGeometry = "M5.5,3.5 H12.5 V10.5 M3.5,5.5 H10.5 V12.5 H3.5 Z";
 
         private void TitleBarPressed(object? sender, PointerPressedEventArgs e)
         {
