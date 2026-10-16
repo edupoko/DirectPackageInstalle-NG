@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using ReactiveUI;
 
@@ -122,7 +123,82 @@ namespace DirectPackageInstaller.ViewModels
         public List<PkgParamInfo> PKGParams
         {
             get => _PKGParams;
-            set => this.RaiseAndSetIfChanged(ref _PKGParams, value);
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _PKGParams, value);
+
+                this.RaisePropertyChanged(nameof(HasPkg));
+                this.RaisePropertyChanged(nameof(PkgTitle));
+                this.RaisePropertyChanged(nameof(PkgSubtitle));
+                this.RaisePropertyChanged(nameof(PkgCategory));
+                this.RaisePropertyChanged(nameof(HasPkgCategory));
+                this.RaisePropertyChanged(nameof(PkgDetails));
+                this.RaisePropertyChanged(nameof(PkgParamCount));
+            }
+        }
+
+        // ---- Resumo do pacote carregado, derivado de PKGParams ----
+
+        private string? Param(string Name) =>
+            PKGParams?.FirstOrDefault(x => x.Name == Name)?.Value is { Length: > 0 } Value ? Value : null;
+
+        public bool HasPkg => PKGParams is { Count: > 0 };
+
+        public int PkgParamCount => PKGParams?.Count ?? 0;
+
+        public string PkgTitle => Param("TITLE") ?? "Unknown package";
+
+        public string PkgCategory => Param("CATEGORY") ?? "";
+
+        public bool HasPkgCategory => PkgCategory.Length > 0;
+
+        public string PkgSubtitle
+        {
+            get
+            {
+                var Parts = new List<string>();
+
+                if (Param("TITLE_ID") is { } TitleId)
+                    Parts.Add(TitleId);
+
+                if (Param("VERSION") is { } Version)
+                    Parts.Add("v" + Version);
+
+                return string.Join("  ·  ", Parts);
+            }
+        }
+
+        /// <summary>Campos principais, com rótulos legíveis. A tabela completa fica recolhida.</summary>
+        public List<PkgParamInfo> PkgDetails
+        {
+            get
+            {
+                var Result = new List<PkgParamInfo>();
+
+                void Add(string Label, string? Value)
+                {
+                    if (!string.IsNullOrWhiteSpace(Value))
+                        Result.Add(new PkgParamInfo { Name = Label, Value = Value });
+                }
+
+                Add("Title ID", Param("TITLE_ID"));
+                Add("Content ID", Param("CONTENT_ID"));
+                Add("Version", Param("VERSION"));
+                Add("App version", Param("APP_VER"));
+                Add("Category", Param("CATEGORY"));
+                Add("Minimum firmware", FormatSystemVersion(Param("SYSTEM_VER")));
+
+                return Result;
+            }
+        }
+
+        /// <summary>SYSTEM_VER vem em BCD (05050000 = 5.05). Zero significa sem requisito.</summary>
+        private static string? FormatSystemVersion(string? Raw)
+        {
+            if (Raw is not { Length: 8 } || Raw.All(x => x == '0'))
+                return null;
+
+            return $"{Raw.Substring(0, 2).TrimStart('0').PadLeft(1, '0')}.{Raw.Substring(2, 2)}";
         }
     }
 

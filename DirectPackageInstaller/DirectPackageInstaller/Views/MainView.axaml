@@ -125,12 +125,51 @@
             <Image Name="IconBox"></Image>
             <GridSplitter Name="MainGridSplitter" Grid.Column="1"></GridSplitter>
 
-            <DataGrid Grid.Column="2" Name="PkgInfoGrid" ItemsSource="{Binding PKGParams}">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Param" Binding="{Binding Name}"/>
-                    <DataGridTextColumn Header="Value" Binding="{Binding Value}"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <!-- Informações do pacote: estado vazio ou cartão com resumo e tabela completa recolhida -->
+            <Grid Grid.Column="2" Name="PkgInfoPanel">
+                <StackPanel IsVisible="{Binding !HasPkg}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+                    <TextBlock Text="NO PACKAGE LOADED" Classes="caption" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Drop a .pkg here, paste a URL or press Open"
+                               Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <ScrollViewer IsVisible="{Binding HasPkg}" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="24,20" Spacing="18">
+
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{Binding PkgTitle}" FontSize="22" FontWeight="SemiBold"
+                                       TextWrapping="Wrap" Margin="0"/>
+                            <TextBlock Text="{Binding PkgSubtitle}" Classes="caption" FontSize="12" Margin="0"/>
+                        </StackPanel>
+
+                        <Border Classes="tag" HorizontalAlignment="Left" IsVisible="{Binding HasPkgCategory}">
+                            <TextBlock Text="{Binding PkgCategory}"/>
+                        </Border>
+
+                        <ItemsControl ItemsSource="{Binding PkgDetails}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="170,*" Margin="0,0,0,10">
+                                        <TextBlock Grid.Column="0" Text="{Binding Name}" Classes="caption"
+                                                   VerticalAlignment="Top" Margin="0,2,0,0"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap"
+                                                   VerticalAlignment="Top" Margin="0"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Expander Header="ALL PARAMETERS" IsExpanded="False" HorizontalAlignment="Stretch">
+                            <DataGrid Name="PkgInfoGrid" ItemsSource="{Binding PKGParams}" Height="320">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Param" Binding="{Binding Name}"/>
+                                    <DataGridTextColumn Header="Value" Binding="{Binding Value}"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Expander>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
         </Grid>
 
         <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Grid.Column="0" Name="Status" Classes="caption"/>

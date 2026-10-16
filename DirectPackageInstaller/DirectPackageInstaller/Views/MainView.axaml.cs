@@ -718,7 +718,7 @@ namespace DirectPackageInstaller.Views
                     await MessageBox.ShowAsync(ex.Message, "DirectPackageInstaller - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 IconBox.Source = null;
-                Model.PKGParams?.Clear();
+                Model.PKGParams = new List<PkgParamInfo>();
 
                 InputType = Source.NONE;
                 btnLoad.Content = "Load";
@@ -1409,8 +1409,8 @@ namespace DirectPackageInstaller.Views
                     MainGridSplitter[Grid.RowProperty] = 0;
                     MainGridSplitter[Grid.ColumnProperty] = 1;
                     
-                    PkgInfoGrid[Grid.ColumnProperty] = 2;
-                    PkgInfoGrid[Grid.RowProperty] = 0;
+                    PkgInfoPanel[Grid.ColumnProperty] = 2;
+                    PkgInfoPanel[Grid.RowProperty] = 0;
                 }
                 else
                 {
@@ -1439,8 +1439,8 @@ namespace DirectPackageInstaller.Views
                     MainGridSplitter[Grid.RowProperty] = 1;
                     MainGridSplitter[Grid.ColumnProperty] = 0;
                     
-                    PkgInfoGrid[Grid.ColumnProperty] = 0;
-                    PkgInfoGrid[Grid.RowProperty] = 2;
+                    PkgInfoPanel[Grid.ColumnProperty] = 0;
+                    PkgInfoPanel[Grid.RowProperty] = 2;
                 }
             }
             else if (InLandscape != null)
