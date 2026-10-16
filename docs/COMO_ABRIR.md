@@ -61,7 +61,7 @@ No fish, use `set -x PATH $HOME/.dotnet8 $PATH` e `set -x DOTNET_ROOT $HOME/.dot
 - As telas mantêm o fundo azul-escuro: tela principal, seletor de arquivos, lista de links, caixas de mensagem e gerenciador de cookies.
 - A cor de fundo está em um só lugar: o recurso `AppBackgroundBrush` em `DirectPackageInstaller/DirectPackageInstaller/App.axaml`.
 - Colar uma URL na barra superior muda o botão de "Open" para "Load".
-- Arrastar um arquivo `.pkg` para a janela carrega o preview.
+- Clicar em "Open" com a barra vazia abre o seletor de arquivos e carrega o preview do `.pkg`.
 
 ## Problemas comuns
 

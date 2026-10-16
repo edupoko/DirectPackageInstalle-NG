@@ -112,8 +112,6 @@ namespace DirectPackageInstaller.Views
             
             PreviewGrid.PropertyChanged += PreviewGridOnPropertyChanged;
 
-            AddHandler(DragDrop.DragOverEvent, DragOver);
-            AddHandler(DragDrop.DropEvent, DropEventEvent);
 
             btnDHCPService.IsVisible = App.IsWindows;
 
@@ -718,7 +716,7 @@ namespace DirectPackageInstaller.Views
                     await MessageBox.ShowAsync(ex.Message, "DirectPackageInstaller - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 IconBox.Source = null;
-                Model.PKGParams?.Clear();
+                Model.PKGParams = new List<PkgParamInfo>();
 
                 InputType = Source.NONE;
                 btnLoad.Content = "Load";
@@ -1165,47 +1163,6 @@ namespace DirectPackageInstaller.Views
             App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
         }
 
-        private void DropEventEvent(object? sender, DragEventArgs e)
-        {
-            if (e.Data.Contains(DataFormats.Text))
-            {
-                var Links = e.Data.GetText()!.Split('\n', '\r')
-                    .Where(x => !string.IsNullOrEmpty(x.Trim()) && x.Trim().StartsWith("http"))
-                    .Select(x => x.Trim()).ToArray();
-
-                _ = URLAnalyzer.Analyze(Links, false);
-
-                App.Callback(() => {
-                    Model.CurrentURL = Links.First();
-                    App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
-                });
-                return;
-            }
-
-            if (e.Data.Contains(DataFormats.FileNames))
-            {
-                var Files = e.Data.GetFileNames()!.ToArray();
-
-                BatchList.Clear();
-                BatchList.AddRange(Files.Select(x => (x, Path.GetFileName(x))));
-
-                ListEntries(Files);
-
-                App.Callback(() => {
-                    Model.CurrentURL = Files.First();
-                    App.Callback(() => BtnLoadOnClick(null, new RoutedEventArgs()));
-                });
-            }
-        }
-
-        private void DragOver(object? sender, DragEventArgs e)
-        {
-            e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
-
-            if (!e.Data.Contains(DataFormats.Text) && !e.Data.Contains(DataFormats.FileNames))
-                e.DragEffects = DragDropEffects.None;
-        }
-
         private void UrlChanged(string Url)
         {
             InputType = Source.NONE;
@@ -1409,8 +1366,8 @@ namespace DirectPackageInstaller.Views
                     MainGridSplitter[Grid.RowProperty] = 0;
                     MainGridSplitter[Grid.ColumnProperty] = 1;
                     
-                    PkgInfoGrid[Grid.ColumnProperty] = 2;
-                    PkgInfoGrid[Grid.RowProperty] = 0;
+                    PkgInfoPanel[Grid.ColumnProperty] = 2;
+                    PkgInfoPanel[Grid.RowProperty] = 0;
                 }
                 else
                 {
@@ -1439,8 +1396,8 @@ namespace DirectPackageInstaller.Views
                     MainGridSplitter[Grid.RowProperty] = 1;
                     MainGridSplitter[Grid.ColumnProperty] = 0;
                     
-                    PkgInfoGrid[Grid.ColumnProperty] = 0;
-                    PkgInfoGrid[Grid.RowProperty] = 2;
+                    PkgInfoPanel[Grid.ColumnProperty] = 0;
+                    PkgInfoPanel[Grid.RowProperty] = 2;
                 }
             }
             else if (InLandscape != null)

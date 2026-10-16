@@ -134,6 +134,11 @@
         <Setter Property="CornerRadius" Value="0"/>
     </Style>
 
+    <!-- Expander: reto e sem preenchimento no cabeçalho -->
+    <Style Selector="Expander">
+        <Setter Property="CornerRadius" Value="0"/>
+    </Style>
+
     <!-- Campos: cantos retos -->
     <Style Selector="TextBox">
         <Setter Property="CornerRadius" Value="0"/>
