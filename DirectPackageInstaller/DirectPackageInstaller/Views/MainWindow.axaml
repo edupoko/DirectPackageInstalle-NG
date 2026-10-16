@@ -83,11 +83,20 @@
             <Setter Property="Background" Value="Transparent"/>
         </Style>
         <Style Selector="Button.window:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+            <Setter Property="Background" Value="#232A3F"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+        </Style>
+        <Style Selector="Button.window:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#2E3652"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
         </Style>
         <Style Selector="Button.window.close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#C42B1C"/>
+        </Style>
+        <Style Selector="Button.window.close:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#9E2216"/>
         </Style>
         <Style Selector="Path.glyph">
             <Setter Property="Stroke" Value="{DynamicResource TextPrimaryBrush}"/>

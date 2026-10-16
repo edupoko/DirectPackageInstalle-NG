@@ -16,9 +16,21 @@
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
     </Style>
+    <!-- Estados do botão padrão: sempre escuros, com texto branco -->
     <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="Background" Value="#232A3F"/>
+        <Setter Property="BorderBrush" Value="#FFFFFF"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+    <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#2E3652"/>
+        <Setter Property="BorderBrush" Value="#FFFFFF"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+    <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="#2E3652"/>
+        <Setter Property="Foreground" Value="#5C6580"/>
     </Style>
 
     <!-- Botão primário: retângulo branco chapado com texto escuro -->
@@ -28,13 +40,19 @@
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
     </Style>
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource PrimaryHoverBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource OnPrimaryBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHoverBrush}"/>
+        <Setter Property="Background" Value="#DCE0EC"/>
+        <Setter Property="Foreground" Value="#0B0E18"/>
+        <Setter Property="BorderBrush" Value="#DCE0EC"/>
+    </Style>
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#C5CADB"/>
+        <Setter Property="Foreground" Value="#0B0E18"/>
+        <Setter Property="BorderBrush" Value="#C5CADB"/>
     </Style>
     <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+        <Setter Property="Background" Value="#232A3F"/>
+        <Setter Property="Foreground" Value="#5C6580"/>
+        <Setter Property="BorderBrush" Value="#232A3F"/>
     </Style>
 
     <!-- Campos: cantos retos -->
