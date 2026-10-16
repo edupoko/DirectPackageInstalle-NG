@@ -27,17 +27,25 @@ public sealed class ConsoleStatusResult
 
     /// <summary>Instaladores encontrados, ex.: "GoldHEN" ou "GoldHEN + RPI".</summary>
     public string Services { get; init; } = "";
+
+    /// <summary>Resultado da última consulta ao GoldHEN, reaproveitado entre ciclos.</summary>
+    public bool GoldHen { get; init; }
 }
 
 /// <summary>Verifica se o console configurado está acessível e pronto para receber um PKG.</summary>
 public static class ConsoleStatusChecker
 {
-    public static async Task<ConsoleStatusResult> CheckAsync(string? Ip)
+    /// <param name="Ip">IP do console.</param>
+    /// <param name="CheckGoldHen">
+    /// Consulta o GoldHEN (9090). Passe falso para reaproveitar <paramref name="PreviousGoldHen"/>:
+    /// o servidor do GoldHEN é simples e não deve ser consultado com muita frequência.
+    /// </param>
+    public static async Task<ConsoleStatusResult> CheckAsync(string? Ip, bool CheckGoldHen = true, bool PreviousGoldHen = false)
     {
         if (string.IsNullOrWhiteSpace(Ip) || Ip == "0.0.0.0" || !IPAddress.TryParse(Ip, out _))
             return new ConsoleStatusResult { State = ConsoleState.None };
 
-        var Gold = IPHelper.IsGoldHENOnline(Ip);
+        var Gold = CheckGoldHen ? IPHelper.IsGoldHENOnline(Ip) : Task.FromResult(PreviousGoldHen);
         var Rpi = IPHelper.IsRPIOnline(Ip);
         var Eta = IPHelper.IsEtaHenOnline(Ip);
 
@@ -56,12 +64,13 @@ public static class ConsoleStatusChecker
             Services.Add("etaHEN");
 
         if (Services.Count > 0)
-            return new ConsoleStatusResult { State = ConsoleState.Ready, Ip = Ip, Services = string.Join(" + ", Services) };
+            return new ConsoleStatusResult { State = ConsoleState.Ready, Ip = Ip, Services = string.Join(" + ", Services), GoldHen = Gold.Result };
 
         return new ConsoleStatusResult
         {
             State = await Reachable(Ip) ? ConsoleState.NoInstaller : ConsoleState.Offline,
-            Ip = Ip
+            Ip = Ip,
+            GoldHen = Gold.Result
         };
     }
 

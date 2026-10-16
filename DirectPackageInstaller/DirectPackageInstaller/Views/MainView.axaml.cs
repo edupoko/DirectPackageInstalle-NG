@@ -132,6 +132,12 @@ namespace DirectPackageInstaller.Views
 
         private bool ConsoleCheckRunning;
 
+        //O servidor do GoldHEN (9090) é simples: consulta no máximo uma vez por minuto
+        private static readonly TimeSpan GoldHenCheckInterval = TimeSpan.FromSeconds(60);
+        private DateTime LastGoldHenCheck = DateTime.MinValue;
+        private bool LastGoldHenOnline;
+        private string? LastGoldHenIp;
+
         private void ConsoleStatusClick(object? sender, RoutedEventArgs e) => SettingsRequested?.Invoke();
 
         /// <summary>Verifica o console configurado (GoldHEN, RPI, etaHEN) e atualiza o indicador.</summary>
@@ -148,7 +154,16 @@ namespace DirectPackageInstaller.Views
             {
                 Model.BeginConsoleCheck();
 
-                var Result = await ConsoleStatusChecker.CheckAsync(Ip);
+                var CheckGoldHen = Ip != LastGoldHenIp || DateTime.Now - LastGoldHenCheck >= GoldHenCheckInterval;
+
+                var Result = await ConsoleStatusChecker.CheckAsync(Ip, CheckGoldHen, LastGoldHenOnline);
+
+                if (CheckGoldHen)
+                {
+                    LastGoldHenCheck = DateTime.Now;
+                    LastGoldHenIp = Ip;
+                    LastGoldHenOnline = Result.GoldHen;
+                }
 
                 //O IP pode ter mudado durante a verificação; o próximo ciclo cuida do novo
                 if (Model.PS4IP == Ip)
