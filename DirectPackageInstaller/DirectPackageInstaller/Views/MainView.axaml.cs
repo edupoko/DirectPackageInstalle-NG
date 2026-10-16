@@ -224,8 +224,10 @@ namespace DirectPackageInstaller.Views
             if (Model == null)
                 return;
 
-            Model.ConsoleType = Found.Type;
             Model.PS4IP = Found.Ip;
+
+            //Depois do IP: trocar o IP descarta o tipo anterior
+            Model.SetConsoleType(Found.Type, Found.Name.Length > 0 || Found.SystemVersion.Length > 0 ? "Sony discovery" : Found.Services.Contains("etaHEN") ? "etaHEN" : "GoldHEN");
 
             //O IP do PC vem da interface em que o console respondeu
             if (!string.IsNullOrWhiteSpace(Found.LocalIp) && Found.LocalIp != "0.0.0.0")
@@ -394,6 +396,9 @@ namespace DirectPackageInstaller.Views
                 App.Config.SkipUpdateCheck = IniReader.GetBooleanValue("SkipUpdateCheck");
                 App.Config.AutoSplitPKG = IniReader.GetBooleanValue("AutoSplitPKG");
                 App.Config.LibraryPath = IniReader.GetValue("LibraryPath");
+                App.Config.ConsoleModel = IniReader.GetValue("ConsoleModel");
+                App.Config.ConsoleType = IniReader.GetValue("ConsoleType");
+                App.Config.ConsoleTypeIp = IniReader.GetValue("ConsoleTypeIp");
 
                 App.Config.PayloadPort = IniReader.GetIntValue("PayloadPort");
                 
@@ -452,6 +457,11 @@ namespace DirectPackageInstaller.Views
             Model.RealDebridApiKey = App.Config.RealDebridApiKey;
             Model.DebridLinkApiKey = App.Config.DebridLinkApiKey;
             Model.LibraryPath = App.Config.LibraryPath;
+
+            Model.ConsoleModel = App.Config.ConsoleModel ?? "";
+
+            if (!string.IsNullOrEmpty(App.Config.ConsoleType) && App.Config.ConsoleTypeIp == App.Config.PSIP)
+                Model.SetConsoleType(App.Config.ConsoleType, "saved");
              
             if (App.Config.SearchPS4 || string.IsNullOrEmpty(App.Config.PSIP))
             {
@@ -533,8 +543,8 @@ namespace DirectPackageInstaller.Views
                     }
                     var FirstConsole = string.IsNullOrEmpty(Model.PS4IP);
 
-                    Model.ConsoleType = $"PS{VERSION}";
                     Model.PS4IP = PS4IP.ToString();
+                    Model.SetConsoleType($"PS{VERSION}", "Sony discovery");
 
                     if (FirstConsole)
                         Toast.Show("Console found", $"PS{VERSION}  ·  {PS4IP}", ToastKind.Success);
@@ -1066,7 +1076,7 @@ namespace DirectPackageInstaller.Views
             //Notificações da biblioteca e do resumo do pacote não são configurações
             if (e.PropertyName is { } Name && Name != "LibraryPath"
                 && (Name.StartsWith("Library") || Name.StartsWith("Pkg") || Name == "HasPkg" || Name == "HasLibraryStatus" || Name == "ShowLibraryToolbar"
-                    || Name.StartsWith("Transfer") || Name.StartsWith("History") || Name.StartsWith("Console") || Name == "IsScanningConsoles" || Name == "CanCancelTransfer"
+                    || Name.StartsWith("Transfer") || Name.StartsWith("History") || (Name.StartsWith("Console") && Name != "ConsoleType" && Name != "ConsoleModel") || Name == "IsScanningConsoles" || Name == "CanCancelTransfer"
                     || Name == "ShowHistory" || Name == "ShowHistoryEmpty"
                     || Name == "ShowLibrary" || Name == "ShowPackage" || Name == "HasLibraryPath"
                     || Name == "ShowLibraryEmpty" || Name == "IsScanningLibrary"))
@@ -1087,6 +1097,15 @@ namespace DirectPackageInstaller.Views
                     break;
                 case "ShowTransferProgress":
                     App.Config.ShowTransferProgress = Model.ShowTransferProgress;
+                    break;
+                case "ConsoleType":
+                    App.Config.ConsoleType = Model.ConsoleType;
+                    App.Config.ConsoleTypeIp = Model.PS4IP;
+                    App.SaveSettings();
+                    break;
+                case "ConsoleModel":
+                    App.Config.ConsoleModel = Model.ConsoleModel;
+                    App.SaveSettings();
                     break;
                 case "PS4IP":
                     App.Config.PSIP = Model.PS4IP;

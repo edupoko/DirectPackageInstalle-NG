@@ -36,6 +36,17 @@
                         <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PCIP, Mode=TwoWay}" Watermark="192.168.0.20"/>
                     </Grid>
 
+                    <Grid ColumnDefinitions="110,*" Margin="0,8,0,0">
+                        <TextBlock Grid.Column="0" Text="Console model" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="1" SelectedIndex="{Binding ConsoleModelIndex, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch" MinHeight="36">
+                            <ComboBoxItem>Auto-detect</ComboBoxItem>
+                            <ComboBoxItem>PS4</ComboBoxItem>
+                            <ComboBoxItem>PS5</ComboBoxItem>
+                        </ComboBox>
+                    </Grid>
+                    <TextBlock Text="{Binding ConsoleTypeNote}" Classes="caption" Margin="110,6,0,0"/>
+
                     <Grid ColumnDefinitions="*,Auto" Margin="0,12,0,0">
                         <TextBlock Grid.Column="0" Text="{Binding ConsoleScanText}" Classes="caption"
                                    VerticalAlignment="Center" Margin="0"/>
