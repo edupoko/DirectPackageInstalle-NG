@@ -27,6 +27,11 @@ namespace DirectPackageInstaller.Views
             Settings.RestartServerRequested += () => View.RestartServer();
             Settings.DhcpToggleRequested += () => View.ToggleDhcpService();
 
+            //Arquivos soltos fora da MainView (barra de título e bordas) também são aceitos
+            DragDrop.SetAllowDrop(this, true);
+            AddHandler(DragDrop.DragOverEvent, (_, e) => View.HandleDragOver(e));
+            AddHandler(DragDrop.DropEvent, (_, e) => View.HandleDrop(e));
+
             Opened += MainWindowOpened;
             Closing += MainWindowClosing;
         }

@@ -1170,6 +1170,8 @@ namespace DirectPackageInstaller.Views
 
         private void DropEventEvent(object? sender, DragEventArgs e)
         {
+            e.Handled = true;
+
             //Arquivos primeiro: alguns gerenciadores (ex.: Dolphin) enviam o arquivo
             //arrastado também como texto, e o ramo de texto só aceita links http.
             if (e.Data.Contains(DataFormats.FileNames))
@@ -1211,11 +1213,21 @@ namespace DirectPackageInstaller.Views
 
         private void DragOver(object? sender, DragEventArgs e)
         {
-            e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
-
-            if (!e.Data.Contains(DataFormats.Text) && !e.Data.Contains(DataFormats.FileNames))
+            //O arquivo nunca é movido nem apagado: sempre responde como cópia, mesmo
+            //quando o gerenciador de arquivos propõe "mover" (padrão do Dolphin).
+            if (e.Data.Contains(DataFormats.Text) || e.Data.Contains(DataFormats.FileNames))
+                e.DragEffects = DragDropEffects.Copy;
+            else
                 e.DragEffects = DragDropEffects.None;
+
+            e.Handled = true;
         }
+
+        /// <summary>Usado pela janela para aceitar arquivos soltos fora da MainView (barra de título).</summary>
+        public void HandleDragOver(DragEventArgs e) => DragOver(null, e);
+
+        /// <summary>Usado pela janela para aceitar arquivos soltos fora da MainView (barra de título).</summary>
+        public void HandleDrop(DragEventArgs e) => DropEventEvent(null, e);
 
         private void UrlChanged(string Url)
         {
