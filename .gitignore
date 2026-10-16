@@ -304,3 +304,6 @@ $RECYCLE.BIN/
 
 # Runtime cache (gerado em execução, não versionar)
 .cache/
+
+# Configurações do usuário (podem conter API keys)
+Settings.ini
