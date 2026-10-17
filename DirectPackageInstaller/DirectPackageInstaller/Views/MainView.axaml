@@ -185,9 +185,10 @@
                                         </StackPanel>
                                     </Grid>
                                     <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,12,0,0">
-                                        <Button Grid.Column="0" Content="OPEN" Classes="primary" HorizontalAlignment="Stretch"
-                                                Padding="0,8" Click="LibraryItemClick"/>
-                                        <Button Grid.Column="1" Content="UNINSTALL" Margin="8,0,0,0" Padding="14,8"
+                                        <!-- Botões de ação do cartão: estilo e hover próprios (ver Button.card-action em Theme.axaml) -->
+                                        <Button Grid.Column="0" Content="OPEN" Classes="card-action" HorizontalAlignment="Stretch"
+                                                Click="LibraryItemClick"/>
+                                        <Button Grid.Column="1" Content="UNINSTALL" Classes="card-action secondary" Margin="8,0,0,0"
                                                 IsVisible="{Binding CanUninstall}" Click="LibraryUninstallClick"
                                                 ToolTip.Tip="Remove it from the console"/>
                                     </Grid>

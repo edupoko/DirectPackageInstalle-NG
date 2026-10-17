@@ -99,6 +99,39 @@
         <Setter Property="BorderBrush" Value="#1E1E22"/>
     </Style>
 
+    <!-- Botões de ação dos cartões (OPEN, UNINSTALL): altura, fonte e hover próprios.
+         Branco chapado por padrão; no hover o fundo escurece e a borda fica branca. -->
+    <Style Selector="Button.card-action">
+        <Setter Property="Height" Value="36"/>
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="Padding" Value="16,0"/>
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource OnPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+    </Style>
+    <!-- Secundário (UNINSTALL): contorno fino, sem preenchimento -->
+    <Style Selector="Button.card-action.secondary">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
+    </Style>
+    <Style Selector="Button.card-action:pointerover">
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+    <Style Selector="Button.card-action:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#2A2A2F"/>
+        <Setter Property="BorderBrush" Value="#FFFFFF"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+    <Style Selector="Button.card-action:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#1E1E22"/>
+        <Setter Property="BorderBrush" Value="#FFFFFF"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+
     <!-- Botões de janela e de ícone: quadrados, sem contorno -->
     <Style Selector="Button.window">
         <Setter Property="Width" Value="46"/>
