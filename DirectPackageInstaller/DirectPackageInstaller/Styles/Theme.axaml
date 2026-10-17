@@ -243,17 +243,19 @@
         <Setter Property="RenderTransform" Value="translate(0,-2px)"/>
     </Style>
 
-    <!-- Notificação: entra deslizando de baixo e aparecendo -->
+    <!-- Notificação: entra subindo e aparecendo.
+         O Avalonia não anima RenderTransform em quadros-chave (lança InvalidOperationException ao
+         montar a janela), então o deslize usa a margem, que tem animador. -->
     <Style Selector="Border.toast">
         <Style.Animations>
             <Animation Duration="0:0:0.28" FillMode="Forward" Easing="CubicEaseOut">
                 <KeyFrame Cue="0%">
                     <Setter Property="Opacity" Value="0"/>
-                    <Setter Property="RenderTransform" Value="translate(0,14px)"/>
+                    <Setter Property="Margin" Value="0,14,0,0"/>
                 </KeyFrame>
                 <KeyFrame Cue="100%">
                     <Setter Property="Opacity" Value="1"/>
-                    <Setter Property="RenderTransform" Value="translate(0,0)"/>
+                    <Setter Property="Margin" Value="0,0,0,0"/>
                 </KeyFrame>
             </Animation>
         </Style.Animations>
