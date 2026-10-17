@@ -261,19 +261,16 @@
 
     <!-- ===================== Cartões e notificações ===================== -->
 
-    <!-- Cartão da biblioteca: ao passar o mouse, a borda clareia e o cartão sobe 2 px -->
+    <!-- Cartão da biblioteca: ao passar o mouse, só a borda clareia (o cartão não se move) -->
     <Style Selector="Border.card">
-        <Setter Property="RenderTransform" Value="translate(0,0)"/>
         <Setter Property="Transitions">
             <Transitions>
                 <BrushTransition Property="BorderBrush" Duration="0:0:0.18"/>
-                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
             </Transitions>
         </Setter>
     </Style>
     <Style Selector="Border.card:pointerover">
         <Setter Property="BorderBrush" Value="#6A6A72"/>
-        <Setter Property="RenderTransform" Value="translate(0,-2px)"/>
     </Style>
 
     <!-- Notificação: entra subindo e aparecendo.
