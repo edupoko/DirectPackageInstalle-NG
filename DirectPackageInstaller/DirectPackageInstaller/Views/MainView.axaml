@@ -146,7 +146,8 @@
         <!-- Biblioteca: grade de cartões ou estado vazio -->
         <Grid Grid.Row="3" Grid.ColumnSpan="2" Name="LibraryPanel" IsVisible="{Binding ShowLibrary}" Margin="12,0,12,12">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding Library}">
+                <!-- Folga em cima: o cartão sobe 2 px no hover e a área de rolagem recortaria a borda da primeira fileira -->
+                <ItemsControl ItemsSource="{Binding Library}" Margin="0,4,0,0">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel/>
