@@ -72,7 +72,7 @@ namespace DirectPackageInstaller.Tasks
                 {
                     if (!Config.ProxyDownload)
                     {
-                        var Reply = await MessageBox.ShowAsync("The given URL can't be direct downloaded.\nDo you want to the DirectPackageInstaller act as a server?", "DirectPackageInstaller", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                        var Reply = await MessageBox.ShowAsync("The given URL can't be direct downloaded.\nDo you want to the NeoDPI act as a server?", "NeoDPI", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                         if (Reply != DialogResult.Yes)
                             return false;
                     }
@@ -267,7 +267,7 @@ namespace DirectPackageInstaller.Tasks
                         if (Result.Contains("0x80990085"))
                             Result += "\nVerify if your playstation has free space.";
 
-                        await MessageBox.ShowAsync("Failed:\n" + Result, "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        await MessageBox.ShowAsync("Failed:\n" + Result, "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return false;
                     }
                 }
@@ -290,7 +290,7 @@ namespace DirectPackageInstaller.Tasks
                 }
 
                 await File.WriteAllTextAsync(Path.Combine(App.WorkingDirectory, "DPI-ERROR.log"), ex.ToString());
-                await MessageBox.ShowAsync("Failed:\n" + (Result == null ? ex.ToString() : Result), "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                await MessageBox.ShowAsync("Failed:\n" + (Result == null ? ex.ToString() : Result), "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
         }
@@ -348,7 +348,7 @@ namespace DirectPackageInstaller.Tasks
                     if (Result.Contains("0x80990085"))
                         Result += "\nVerify if your playstation has free space.";
 
-                    await MessageBox.ShowAsync("Failed:\n" + Result, "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    await MessageBox.ShowAsync("Failed:\n" + Result, "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
             }
@@ -370,13 +370,13 @@ namespace DirectPackageInstaller.Tasks
                 }
 
                 await File.WriteAllTextAsync(Path.Combine(App.WorkingDirectory, "DPI-ERROR.log"), ex.ToString());
-                await MessageBox.ShowAsync("Failed:\n" + (Result == null ? ex.ToString() : Result), "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                await MessageBox.ShowAsync("Failed:\n" + (Result == null ? ex.ToString() : Result), "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
         }
         #endregion
 
-        #region DirectPackageInstaller
+        #region NeoDPI
         public static async Task StartServer(string LocalIP)
         {
             if (string.IsNullOrEmpty(LocalIP))
@@ -399,7 +399,7 @@ namespace DirectPackageInstaller.Tasks
                 }
                 catch (Exception ex)
                 {
-                    await MessageBox.ShowAsync($"Failed to Open the Http Server\n{ex}", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    await MessageBox.ShowAsync($"Failed to Open the Http Server\n{ex}", "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

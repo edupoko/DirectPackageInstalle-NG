@@ -139,7 +139,7 @@ namespace DirectPackageInstaller
                     continue;
                 }
 
-                var Result = await MessageBox.ShowAsync(Message, "DirectPackageInstaller", MessageBoxButtons.RetryCancel, MessageBoxIcon.Warning);
+                var Result = await MessageBox.ShowAsync(Message, "NeoDPI", MessageBoxButtons.RetryCancel, MessageBoxIcon.Warning);
                 if (Result != DialogResult.Retry)
                     return false;
             }

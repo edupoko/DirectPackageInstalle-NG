@@ -9,6 +9,6 @@
         Height="450"
         x:Class="DirectPackageInstaller.Views.DebugSingleView"
         Icon="/Assets/avalonia-logo.ico"
-        Title="DirectPackageInstaller">
+        Title="NeoDPI">
         <views:SingleView Name="View"/>
 </Window>

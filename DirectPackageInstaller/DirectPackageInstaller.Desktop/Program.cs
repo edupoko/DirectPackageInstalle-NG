@@ -123,7 +123,7 @@ namespace DirectPackageInstaller.Desktop
                     case "h":
                     case "?":
                         Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.WriteLine("DirectPackageInstaller – Basic Usage");
+                        Console.WriteLine("NeoDPI – Basic Usage");
                         Console.ResetColor();
                         Console.WriteLine();
 
@@ -141,7 +141,7 @@ namespace DirectPackageInstaller.Desktop
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.WriteLine("  PKG_SENDER_PC_IP");
                         Console.ResetColor();
-                        Console.WriteLine("    The IP of the machine running DirectPackageInstaller.");
+                        Console.WriteLine("    The IP of the machine running NeoDPI.");
                         Console.WriteLine("    Automatically detected (optional), but not reliable if multiple network connections exist.");
                         Console.WriteLine();
 
@@ -170,13 +170,13 @@ namespace DirectPackageInstaller.Desktop
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.WriteLine("  -Proxy (optional)");
                         Console.ResetColor();
-                        Console.WriteLine("    Makes the PS4 download the PKG via DirectPackageInstaller as a proxy.");
+                        Console.WriteLine("    Makes the PS4 download the PKG via NeoDPI as a proxy.");
                         Console.WriteLine();
 
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.WriteLine("  -Progress (optional)");
                         Console.ResetColor();
-                        Console.WriteLine("    Shows how much data the PS4 is reading from DirectPackageInstaller.");
+                        Console.WriteLine("    Shows how much data the PS4 is reading from NeoDPI.");
                         Console.WriteLine();
 
                         Console.ForegroundColor = ConsoleColor.Cyan;
@@ -198,7 +198,7 @@ namespace DirectPackageInstaller.Desktop
                         Console.WriteLine();
 
                         Console.ForegroundColor = ConsoleColor.DarkGray;
-                        Console.WriteLine("DirectPackageInstaller - By Marcussacana");
+                        Console.WriteLine("NeoDPI - By Marcussacana");
                         Console.ResetColor();
 
                         Console.ReadKey();

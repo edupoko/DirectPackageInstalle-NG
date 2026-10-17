@@ -1,4 +1,4 @@
-# DirectPackageInstaller
+# NeoDPI
 
 A tool to preview and send PKG files to your PS4 or PS5 using direct download links.  
 This tool supports three different methods for sending PKGs:
@@ -101,7 +101,7 @@ How to Use
 #### Direct Download Mode
 
 1.  Launch Remote Package Installer or enable GoldHEN Payload Server.    
-2.  Open DirectPackageInstaller.    
+2.  Open NeoDPI.    
 3.  Paste a direct PKG URL into the "PKG URL" field.    
 4.  Click "Load" and wait.    
 5.  Click "Install" and wait again.    
@@ -110,7 +110,7 @@ How to Use
 #### Proxied Download Mode (for PS4s without internet access)
 
 1.  Launch Remote Package Installer or enable GoldHEN Payload Server.    
-2.  Open DirectPackageInstaller.    
+2.  Open NeoDPI.    
 3.  Go to `Options -> Proxy Downloads` and enable it.    
 4.  Paste a direct PKG URL.    
 5.  Click "Load", then "Install".    
@@ -121,7 +121,7 @@ How to Use
 
 1.  Make sure you have enough free disk space.
 2.  Launch Remote Package Installer or enable GoldHEN Payload Server.
-3.  Open DirectPackageInstaller.
+3.  Open NeoDPI.
 4.  Go to `Options -> Segmented Downloads` and enable it.
 5.  Paste a direct PKG URL.
 6.  Click "Load", then "Install".
@@ -170,7 +170,7 @@ PS: The DPI is incompatible with the winnfsd due this bug [#88](https://github.c
 
 How It Works
 ----------
-DirectPackageInstaller is a simple tool that uses the Remote Package Installer's API to add PKG downloads directly to your PS4 or PS5. It helps you preview and send packages easily.
+NeoDPI is a simple tool that uses the Remote Package Installer's API to add PKG downloads directly to your PS4 or PS5. It helps you preview and send packages easily.
 
 Additionally, the tool features an automatic proxy server to accelerate downloads. Since the PS4 has much better speeds over LAN than WAN, proxying through your PC can significantly improve performance.
 
@@ -264,4 +264,4 @@ Credits
 -   Payload template by _sleirsgoevy_
 -   PS4 OS internals help by _LM_
 -   PS4 export definitions by _OpenOrbis SDK_
--   **DirectPackageInstaller** by _marcussacana_
+-   **NeoDPI** by _marcussacana_

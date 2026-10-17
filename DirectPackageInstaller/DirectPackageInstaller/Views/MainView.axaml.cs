@@ -324,7 +324,7 @@ namespace DirectPackageInstaller.Views
 
             if (Provider is not { CanPickFolder: true })
             {
-                await MessageBox.ShowAsync("Folder selection isn't available on this platform.\nType the folder path in the Settings instead.", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                await MessageBox.ShowAsync("Folder selection isn't available on this platform.\nType the folder path in the Settings instead.", "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -434,7 +434,7 @@ namespace DirectPackageInstaller.Views
 
                 if (ConnectionHelper.AllowReconnect && !ConnectionHelper.IsWindowsAdministrator())
                 {
-                    await MessageBox.ShowAsync("Please, Restart the DirectPackageInstaller as Administrator\nto use the Auto Reconnection feature.", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    await MessageBox.ShowAsync("Please, Restart the NeoDPI as Administrator\nto use the Auto Reconnection feature.", "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
             else
@@ -455,17 +455,17 @@ namespace DirectPackageInstaller.Views
                     RealDebridApiKey = null
                 };
 
-                var DHCPHint = "With DirectPackageInstaller your PS4/PS5 and PC can do a \"Plug And Play\" network connection just enable the DHCP Server option and select your network adapter if needed.";
+                var DHCPHint = "With NeoDPI your PS4/PS5 and PC can do a \"Plug And Play\" network connection just enable the DHCP Server option and select your network adapter if needed.";
                 var ProxyHint = "If your download speed is very slow, you can try enable the \"Proxy Downloads\" feature, since this feature has been created just to optimize the download speed.";
-                var CompressedHint = "When downloading directly from compressed files, you can't resume the download after the DirectPackageInstaller is closed, but before close the DirectPackageInstaller you still can pause and resume the download in your PS4.";
+                var CompressedHint = "When downloading directly from compressed files, you can't resume the download after the NeoDPI is closed, but before close the NeoDPI you still can pause and resume the download in your PS4.";
                 var AndroidHints = "Is recommended to keep your phone in charger to prevent any battery optimization problems.\nIf you're using MIUI, disable the battery optimizations manually in the app properties.";
-                var FirewallHint = $"The DirectPackageInstaller use the port {Installer.ServerPort} in the \"Proxy Downloads\" feature, maybe you will need to open the ports in your firewall.";
+                var FirewallHint = $"The NeoDPI use the port {Installer.ServerPort} in the \"Proxy Downloads\" feature, maybe you will need to open the ports in your firewall.";
                 var ResumeHint = "Direct PKG urls, using the \"Proxy Download\" feature or not, can be resumed anytime by just selecting 'resume' in your PS4/PS5 download list.";
                 var IndirectDownloadHint = "When using the \"Proxy Downloads\" feature, the PS4/PS5 can't download the game alone and the DirectPackageInstaller must keep open.";
                 var DirectDownloadHint = "When using the direct download mode, you can turn off the computer or close the DirectPakcageInstaller and your PS4/PS5 will continue the download alone.";
                 var WelcomeText = $"Welcome. User, The focus of this tool is download PKGs from direct links but we have others minor features as well.\n\nGood to know:\n{DirectDownloadHint}\n\n{IndirectDownloadHint}\n\n{ResumeHint}\n\n{(App.IsAndroid ? AndroidHints : FirewallHint)}\n\n{CompressedHint}\n\n{ProxyHint}\n\n{(App.IsWindows? DHCPHint  + "\n\n": "")}Created by marcussacana";
                 
-                await MessageBox.ShowAsync(WelcomeText, "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                await MessageBox.ShowAsync(WelcomeText, "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
             Model.DHCPService = App.Config.EnableDHCP;
@@ -530,7 +530,7 @@ namespace DirectPackageInstaller.Views
                  var MissingRuntime = await App.Updater.RequiresNewRuntime();
                  if (!App.Config.SkipUpdateCheck && MissingRuntime != null)
                  {
-                     var Response = await MessageBox.ShowAsync($"A New update has been released, but you can't update because a required program is missing.\nNow, the DirectPackageInstaller will use .NET {MissingRuntime}, and you can update only after install the Runtime, Press Yes to Visit the Download Page.", "DirectPackageInstaller - MISSING RUNTIME", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                     var Response = await MessageBox.ShowAsync($"A New update has been released, but you can't update because a required program is missing.\nNow, the NeoDPI will use .NET {MissingRuntime}, and you can update only after install the Runtime, Press Yes to Visit the Download Page.", "NeoDPI - MISSING RUNTIME", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                      if (Response == DialogResult.Yes)
                      { 
                          OpenUrl($"https://dotnet.microsoft.com/en-us/download/dotnet/{MissingRuntime}/runtime");
@@ -550,7 +550,7 @@ namespace DirectPackageInstaller.Views
 
              if (string.IsNullOrWhiteSpace(App.WorkingDirectory))
              {
-                 await MessageBox.ShowAsync("Failed find the Working Directory Path of the DirectPackageInstaller.\nPlease, Restart the Program.", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                 await MessageBox.ShowAsync("Failed find the Working Directory Path of the NeoDPI.\nPlease, Restart the Program.", "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Error);
                  Environment.Exit(0);
              }
         }
@@ -563,7 +563,7 @@ namespace DirectPackageInstaller.Views
                 {
                     if (!string.IsNullOrEmpty(Model.PS4IP))
                     {
-                        if (Model.PS4IP == PS4IP.ToString() || await MessageBox.ShowAsync($"A new PS{VERSION} IP has been found ({PS4IP}), Update the PS{VERSION} IP?", "DirectPackageInstaller", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                        if (Model.PS4IP == PS4IP.ToString() || await MessageBox.ShowAsync($"A new PS{VERSION} IP has been found ({PS4IP}), Update the PS{VERSION} IP?", "NeoDPI", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
                             return;
                     }
                     var FirstConsole = string.IsNullOrEmpty(Model.PS4IP);
@@ -738,7 +738,7 @@ namespace DirectPackageInstaller.Views
             }
             else
             {
-                if (await MessageBox.ShowAsync("The DHCP Service will change your network settings, are you sure?\n\nNote: When you close the DirectPackageInstaller your network settings will be restored.", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+                if (await MessageBox.ShowAsync("The DHCP Service will change your network settings, are you sure?\n\nNote: When you close the NeoDPI your network settings will be restored.", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
                     await StartDHCP();
                 else
                     Model.DHCPService = false;
@@ -863,7 +863,7 @@ namespace DirectPackageInstaller.Views
             InputType = Source.NONE;
 
             if (!SourcePackage.IsValidURL() && !File.Exists(SourcePackage)) {
-                await MessageBox.ShowAsync(Parent, "Invalid URL or File Path", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                await MessageBox.ShowAsync(Parent, "Invalid URL or File Path", "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -926,7 +926,7 @@ namespace DirectPackageInstaller.Views
 
                 if (LimitedFHost && !BadHostAlert)
                 {
-                    await MessageBox.ShowAsync("This Filehosting is limited, Even though it is compatible with DirectPackageInstaller it is not recommended for use, prefer services like alldebrid to download from this server, otherwise you may have connection and/or speed problems.\nDon't expect to compressed files works as expected as well, the DirectPackageInstaller will need download the entire file before can do anything", "Bad File Hosting Service", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    await MessageBox.ShowAsync("This Filehosting is limited, Even though it is compatible with NeoDPI it is not recommended for use, prefer services like alldebrid to download from this server, otherwise you may have connection and/or speed problems.\nDon't expect to compressed files works as expected as well, the NeoDPI will need download the entire file before can do anything", "Bad File Hosting Service", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     BadHostAlert = true;
                 }
 
@@ -956,7 +956,7 @@ namespace DirectPackageInstaller.Views
                 {
                     if (App.IsAndroid && Model.SegmentedMode)
                     {
-                        await MessageBox.ShowAsync("Download of compressed files in android isn't stable, Segmented Download Will be disabled", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        await MessageBox.ShowAsync("Download of compressed files in android isn't stable, Segmented Download Will be disabled", "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         Model.SegmentedMode = false;
                     }
                     PKGStream = DataInfo?.Buffer ?? throw new Exception();
@@ -991,9 +991,9 @@ namespace DirectPackageInstaller.Views
                 await File.WriteAllTextAsync(Path.Combine(App.WorkingDirectory, "DPI-ERROR.log"), ex.ToString());
                 
                 if (ex is not AbortException)
-                    await MessageBox.ShowAsync(ex.ToString(), "DirectPackageInstaller - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    await MessageBox.ShowAsync(ex.ToString(), "NeoDPI - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 else if (App.Config.ShowError)
-                    await MessageBox.ShowAsync(ex.Message, "DirectPackageInstaller - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    await MessageBox.ShowAsync(ex.Message, "NeoDPI - Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 IconBox.Source = null;
                 Model.PKGParams = new List<PkgParamInfo>();
@@ -1056,7 +1056,7 @@ namespace DirectPackageInstaller.Views
                 {
                     if (UrlInfo.Urls.Length == 1)
                     {
-                        await MessageBox.ShowAsync($"The input file has a unsupported format,\nSupported Files: .rar .7z .pkg", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        await MessageBox.ShowAsync($"The input file has a unsupported format,\nSupported Files: .rar .7z .pkg", "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return null;
                     }
 
@@ -1221,7 +1221,7 @@ namespace DirectPackageInstaller.Views
         {
             if (string.IsNullOrWhiteSpace(App.Config.PSIP) || string.IsNullOrWhiteSpace(App.Config.PCIP))
             {
-                await MessageBox.ShowAsync(Parent, "Failed to detect your playstation IP.\nPlease, Type your PS/PC IP in the options menu", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                await MessageBox.ShowAsync(Parent, "Failed to detect your playstation IP.\nPlease, Type your PS/PC IP in the options menu", "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
 
@@ -1241,7 +1241,7 @@ namespace DirectPackageInstaller.Views
                     {
                         if (!await IPHelper.IsEtaHenOnline(App.Config.PSIP))
                         {
-                            await MessageBox.ShowAsync($"RPI, GoldHEN nor etaHEN Found at {App.Config.PSIP}, Verify if is running.\nYou may need re-enable the payload server.", "DirectPackageInstaller", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            await MessageBox.ShowAsync($"RPI, GoldHEN nor etaHEN Found at {App.Config.PSIP}, Verify if is running.\nYou may need re-enable the payload server.", "NeoDPI", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return false;
                         }
                     }
@@ -1344,7 +1344,7 @@ namespace DirectPackageInstaller.Views
 
                 if (!await Install(ContentSource, true) && !ErrorIgnored)
                 {
-                    var Reply = await MessageBox.ShowAsync("Continue trying install the others packages?","DirectPackageInstaller", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    var Reply = await MessageBox.ShowAsync("Continue trying install the others packages?","NeoDPI", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (Reply != DialogResult.Yes){
                         break;
                     }
@@ -1637,7 +1637,7 @@ namespace DirectPackageInstaller.Views
                 _ => "game"
             };
 
-            var Answer = await MessageBox.ShowAsync($"Remove this {What} from the console?\n\n{Item.Title}\n{Item.Subtitle}\n\nConsole: {Ip}", "DirectPackageInstaller", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            var Answer = await MessageBox.ShowAsync($"Remove this {What} from the console?\n\n{Item.Title}\n{Item.Subtitle}\n\nConsole: {Ip}", "NeoDPI", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
             if (Answer != DialogResult.Yes)
                 return;
@@ -1751,7 +1751,7 @@ namespace DirectPackageInstaller.Views
             if (Model == null || Model.History.Count == 0)
                 return;
 
-            if (await MessageBox.ShowAsync("Clear the whole send history?", "DirectPackageInstaller", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            if (await MessageBox.ShowAsync("Clear the whole send history?", "NeoDPI", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 return;
 
             Model.ClearHistory();
