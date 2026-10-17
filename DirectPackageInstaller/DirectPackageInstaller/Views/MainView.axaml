@@ -146,7 +146,8 @@
         <!-- Biblioteca: grade de cartões ou estado vazio -->
         <Grid Grid.Row="3" Grid.ColumnSpan="2" Name="LibraryPanel" IsVisible="{Binding ShowLibrary}" Margin="12,0,12,12">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding Library}">
+                <!-- Folga em cima: o cartão sobe 2 px no hover e a área de rolagem recortaria a borda da primeira fileira -->
+                <ItemsControl ItemsSource="{Binding Library}" Margin="0,4,0,0">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel/>
@@ -155,7 +156,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <!-- Cartão de altura fixa: o botão fica sempre na base e as linhas de texto alinham entre cartões -->
-                            <Border Width="280" Height="176" Margin="0,0,12,12" Padding="12"
+                            <Border Classes="card" Width="280" Height="176" Margin="0,0,12,12" Padding="12"
                                     BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1">
                                 <Grid RowDefinitions="*,Auto">
                                     <Grid Grid.Row="0" ColumnDefinitions="64,*">
@@ -184,9 +185,10 @@
                                         </StackPanel>
                                     </Grid>
                                     <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,12,0,0">
-                                        <Button Grid.Column="0" Content="OPEN" Classes="primary" HorizontalAlignment="Stretch"
-                                                Padding="0,8" Click="LibraryItemClick"/>
-                                        <Button Grid.Column="1" Content="UNINSTALL" Margin="8,0,0,0" Padding="14,8"
+                                        <!-- Botões de ação do cartão: estilo e hover próprios (ver Button.card-action em Theme.axaml) -->
+                                        <Button Grid.Column="0" Content="OPEN" Classes="card-action" HorizontalAlignment="Stretch"
+                                                Click="LibraryItemClick"/>
+                                        <Button Grid.Column="1" Content="UNINSTALL" Classes="card-action secondary" Margin="8,0,0,0"
                                                 IsVisible="{Binding CanUninstall}" Click="LibraryUninstallClick"
                                                 ToolTip.Tip="Remove it from the console"/>
                                     </Grid>
@@ -331,7 +333,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Border Background="#26262A" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                    <Border Classes="toast" Background="#1A1A1E" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                             BoxShadow="0 6 20 0 #90000000">
                         <Grid ColumnDefinitions="3,Auto,*,Auto">
                             <Border Grid.Column="0" Background="{Binding AccentBrush}"/>

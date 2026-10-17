@@ -20,7 +20,7 @@ namespace DirectPackageInstaller.UIBase;
 /// </summary>
 public abstract class DialogWindow : Window
 {
-    private const string DefaultTitle = "DirectPackageInstaller";
+    private const string DefaultTitle = "NeoDPI";
 
     private TextBlock? TitleText;
 

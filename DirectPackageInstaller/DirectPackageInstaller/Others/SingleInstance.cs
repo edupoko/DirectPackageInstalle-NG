@@ -68,7 +68,7 @@ public static class SingleInstance
 
             if (Reply.Wait(2500) && Reply.Result == AckReply)
             {
-                Console.Error.WriteLine("DirectPackageInstaller is already open. The existing window was brought to the front.");
+                Console.Error.WriteLine("NeoDPI is already open. The existing window was brought to the front.");
                 return;
             }
         }
@@ -76,7 +76,7 @@ public static class SingleInstance
         {
         }
 
-        Console.Error.WriteLine("DirectPackageInstaller is already running but is not responding. Close it (or run: pkill -9 -f DirectPackageInstaller.Desktop) and try again.");
+        Console.Error.WriteLine("NeoDPI is already running but is not responding. Close it (or run: pkill -9 -f DirectPackageInstaller.Desktop) and try again.");
     }
 
     private static void StartListener()
@@ -145,7 +145,7 @@ public static class SingleInstance
             Window.Topmost = true;
             Window.Topmost = false;
 
-            Toast.Show("Already open", "DirectPackageInstaller was already running; this window was brought to the front.");
+            Toast.Show("Already open", "NeoDPI was already running; this window was brought to the front.");
         });
     }
 }

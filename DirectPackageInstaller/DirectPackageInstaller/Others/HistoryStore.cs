@@ -35,7 +35,7 @@ public class HistoryEntry
         "SENT" => "#60A5FA",
         "FAILED" => "#F87171",
         "REMOVED" => "#C084FC",
-        _ => "#9A9AA2"
+        _ => "#8E8E98"
     }));
 
     /// <summary>Envios que chegaram ao console (concluídos ou enviados em modo direto).</summary>

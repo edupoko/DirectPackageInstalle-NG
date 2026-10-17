@@ -14,7 +14,7 @@
         Background="{DynamicResource AppBackgroundBrush}"
         x:Class="DirectPackageInstaller.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
-        Title="DirectPackageInstaller">
+        Title="NeoDPI">
     <Grid>
         <!-- Moldura da janela: borda fina, barra de título própria e conteúdo -->
         <Border Name="WindowFrame" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1">

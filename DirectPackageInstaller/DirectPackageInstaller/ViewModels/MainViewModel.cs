@@ -289,12 +289,12 @@ namespace DirectPackageInstaller.ViewModels
         }
 
         /// <summary>Verde = pronto, amarelo = responde sem instalador, vermelho = sem resposta, cinza = sem informação.</summary>
-        public IBrush ConsoleStatusBrush => new SolidColorBrush(Color.Parse(!HasConsoleIp ? "#9A9AA2" : _consoleStatus.State switch
+        public IBrush ConsoleStatusBrush => new SolidColorBrush(Color.Parse(!HasConsoleIp ? "#8E8E98" : _consoleStatus.State switch
         {
             ConsoleState.Ready => "#4ADE80",
             ConsoleState.NoInstaller => "#FBBF24",
             ConsoleState.Offline => "#F87171",
-            _ => "#9A9AA2"
+            _ => "#8E8E98"
         }));
 
         public string ConsoleStatusTip => !HasConsoleIp

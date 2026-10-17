@@ -10,11 +10,11 @@
                 <ResourceInclude Source="avares://DirectPackageInstaller/Styles/Icons.axaml"/>
             </ResourceDictionary.MergedDictionaries>
         <!-- Cor de fundo das telas. Trocar aqui altera todas as views. -->
-        <SolidColorBrush x:Key="AppBackgroundBrush">#1C1C1E</SolidColorBrush>
-        <SolidColorBrush x:Key="SurfaceHoverBrush">#2A2A2D</SolidColorBrush>
-        <SolidColorBrush x:Key="BorderStrongBrush">#48484D</SolidColorBrush>
+        <SolidColorBrush x:Key="AppBackgroundBrush">#111113</SolidColorBrush>
+        <SolidColorBrush x:Key="SurfaceHoverBrush">#1E1E22</SolidColorBrush>
+        <SolidColorBrush x:Key="BorderStrongBrush">#2E2E34</SolidColorBrush>
         <SolidColorBrush x:Key="TextPrimaryBrush">#FFFFFF</SolidColorBrush>
-        <SolidColorBrush x:Key="TextMutedBrush">#9A9AA2</SolidColorBrush>
+        <SolidColorBrush x:Key="TextMutedBrush">#8E8E98</SolidColorBrush>
         <SolidColorBrush x:Key="PrimaryBrush">#FFFFFF</SolidColorBrush>
         <SolidColorBrush x:Key="PrimaryHoverBrush">#D8D8DC</SolidColorBrush>
         <SolidColorBrush x:Key="OnPrimaryBrush">#0B0B0D</SolidColorBrush>
@@ -22,9 +22,9 @@
 
             <!-- Barra de rolagem compacta: fina, sem setas e com alça cinza discreta -->
             <x:Double x:Key="ScrollBarSize">8</x:Double>
-            <SolidColorBrush x:Key="ScrollBarThumbFill">#55555B</SolidColorBrush>
-            <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver">#80808A</SolidColorBrush>
-            <SolidColorBrush x:Key="ScrollBarThumbFillPressed">#A5A5AE</SolidColorBrush>
+            <SolidColorBrush x:Key="ScrollBarThumbFill">#3E3E45</SolidColorBrush>
+            <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver">#5E5E68</SolidColorBrush>
+            <SolidColorBrush x:Key="ScrollBarThumbFillPressed">#8E8E98</SolidColorBrush>
             <SolidColorBrush x:Key="ScrollBarTrackFill">Transparent</SolidColorBrush>
             <SolidColorBrush x:Key="ScrollBarTrackFillPointerOver">Transparent</SolidColorBrush>
             <SolidColorBrush x:Key="ScrollBarTrackStroke">Transparent</SolidColorBrush>
