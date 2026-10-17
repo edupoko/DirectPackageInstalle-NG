@@ -4,9 +4,16 @@
         Estilos comuns do app (referência visual: pasta inspiracoes/).
         Cantos retos, linhas finas, rótulos em monoespaçada e fundo cinza escuro.
         Os tokens de cor ficam em App.axaml (Application.Resources).
+
+        Movimento: os botões, campos, cartões e notificações têm transições curtas
+        (120 a 280 ms) para mudanças de cor, escala e posição. Respeitam o tempo
+        definido aqui; para desligar a animação, zere as durações.
     -->
 
-    <!-- Botão padrão: contorno fino, fundo transparente, cantos retos -->
+    <!-- ===================== Botões ===================== -->
+
+    <!-- Botão padrão: contorno fino, fundo transparente, cantos retos.
+         A escala suave no pressionar fica no próprio botão (RenderTransform). -->
     <Style Selector="Button">
         <Setter Property="CornerRadius" Value="0"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -16,6 +23,24 @@
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="RenderTransformOrigin" Value="50%,50%"/>
+        <Setter Property="RenderTransform" Value="scale(1)"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12"/>
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <!-- Cores e borda do conteúdo: transição suave entre os estados -->
+    <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.16"/>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.16"/>
+                <BrushTransition Property="Foreground" Duration="0:0:0.16"/>
+            </Transitions>
+        </Setter>
     </Style>
 
     <!-- A cor do texto e dos ícones vem do Foreground do próprio botão -->
@@ -24,9 +49,11 @@
     </Style>
     <Style Selector="Button:pressed">
         <Setter Property="Foreground" Value="#0B0B0D"/>
+        <Setter Property="RenderTransform" Value="scale(0.97)"/>
     </Style>
     <Style Selector="Button:disabled">
-        <Setter Property="Foreground" Value="#6A6A72"/>
+        <Setter Property="Foreground" Value="#5A5A62"/>
+        <Setter Property="RenderTransform" Value="scale(1)"/>
     </Style>
 
     <!-- Hover: fundo branco, texto e ícone escuros -->
@@ -46,8 +73,8 @@
     <!-- Desabilitado -->
     <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderBrush" Value="#3A3A3F"/>
-        <Setter Property="Foreground" Value="#6A6A72"/>
+        <Setter Property="BorderBrush" Value="#2E2E34"/>
+        <Setter Property="Foreground" Value="#5A5A62"/>
     </Style>
 
     <!-- Botão primário: retângulo branco chapado com texto escuro -->
@@ -67,9 +94,9 @@
         <Setter Property="BorderBrush" Value="#BEBEC4"/>
     </Style>
     <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#2A2A2D"/>
-        <Setter Property="Foreground" Value="#6A6A72"/>
-        <Setter Property="BorderBrush" Value="#2A2A2D"/>
+        <Setter Property="Background" Value="#1E1E22"/>
+        <Setter Property="Foreground" Value="#5A5A62"/>
+        <Setter Property="BorderBrush" Value="#1E1E22"/>
     </Style>
 
     <!-- Botões de janela e de ícone: quadrados, sem contorno -->
@@ -99,12 +126,12 @@
         <Setter Property="Foreground" Value="#FFFFFF"/>
     </Style>
     <Style Selector="Button.wincontrol:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#3A3A3D"/>
+        <Setter Property="Background" Value="#2A2A2F"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="Foreground" Value="#FFFFFF"/>
     </Style>
     <Style Selector="Button.wincontrol:pressed /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#2A2A2D"/>
+        <Setter Property="Background" Value="#1E1E22"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="Foreground" Value="#FFFFFF"/>
     </Style>
@@ -117,6 +144,70 @@
     <Style Selector="Button.wincontrol.close:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="#9E2216"/>
         <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+
+    <!-- Abas: botões lado a lado; a ativa fica invertida em branco -->
+    <Style Selector="Button.tab">
+        <Setter Property="Padding" Value="18,7"/>
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Margin" Value="0,0,-1,0"/>
+    </Style>
+    <Style Selector="Button.tab.active">
+        <Setter Property="Background" Value="#FFFFFF"/>
+        <Setter Property="Foreground" Value="#0B0B0D"/>
+        <Setter Property="BorderBrush" Value="#FFFFFF"/>
+    </Style>
+
+    <!-- Indicador de estado (console): sem contorno, realce discreto no hover e texto sempre claro -->
+    <Style Selector="Button.status">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="Button.status:pointerover">
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+    <Style Selector="Button.status:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#1E1E22"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+
+    <!-- ===================== Campos e seleção ===================== -->
+
+    <Style Selector="TextBox">
+        <Setter Property="CornerRadius" Value="0"/>
+    </Style>
+    <!-- Borda do campo muda de cor com transição ao receber o foco -->
+    <Style Selector="TextBox /template/ Border#PART_BorderElement">
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.18"/>
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="ComboBox">
+        <Setter Property="CornerRadius" Value="0"/>
+    </Style>
+
+    <Style Selector="Expander">
+        <Setter Property="CornerRadius" Value="0"/>
+    </Style>
+
+    <!-- ===================== Progresso e rolagem ===================== -->
+
+    <!-- Barra de progresso: reta, branca sobre trilho cinza; o avanço desliza -->
+    <Style Selector="ProgressBar">
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Setter Property="Background" Value="{DynamicResource BorderStrongBrush}"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Value" Duration="0:0:0.25"/>
+            </Transitions>
+        </Setter>
     </Style>
 
     <!-- Barra de rolagem: 8 px, sem botões de seta, alça reta -->
@@ -135,53 +226,40 @@
         <Setter Property="CornerRadius" Value="0"/>
     </Style>
 
-    <!-- Expander: reto e sem preenchimento no cabeçalho -->
-    <Style Selector="Expander">
-        <Setter Property="CornerRadius" Value="0"/>
+    <!-- ===================== Cartões e notificações ===================== -->
+
+    <!-- Cartão da biblioteca: ao passar o mouse, a borda clareia e o cartão sobe 2 px -->
+    <Style Selector="Border.card">
+        <Setter Property="RenderTransform" Value="translate(0,0)"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.18"/>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.card:pointerover">
+        <Setter Property="BorderBrush" Value="#6A6A72"/>
+        <Setter Property="RenderTransform" Value="translate(0,-2px)"/>
     </Style>
 
-    <!-- Abas: botões lado a lado; a ativa fica invertida em branco -->
-    <Style Selector="Button.tab">
-        <Setter Property="Padding" Value="18,7"/>
-        <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}"/>
-        <Setter Property="FontSize" Value="11"/>
-        <Setter Property="Margin" Value="0,0,-1,0"/>
-    </Style>
-    <Style Selector="Button.tab.active">
-        <Setter Property="Background" Value="#FFFFFF"/>
-        <Setter Property="Foreground" Value="#0B0B0D"/>
-        <Setter Property="BorderBrush" Value="#FFFFFF"/>
-    </Style>
-
-    <!-- Barra de progresso: reta, branca sobre trilho cinza -->
-    <Style Selector="ProgressBar">
-        <Setter Property="CornerRadius" Value="0"/>
-        <Setter Property="Foreground" Value="#FFFFFF"/>
-        <Setter Property="Background" Value="{DynamicResource BorderStrongBrush}"/>
+    <!-- Notificação: entra deslizando de baixo e aparecendo -->
+    <Style Selector="Border.toast">
+        <Style.Animations>
+            <Animation Duration="0:0:0.28" FillMode="Forward" Easing="CubicEaseOut">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0"/>
+                    <Setter Property="RenderTransform" Value="translate(0,14px)"/>
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1"/>
+                    <Setter Property="RenderTransform" Value="translate(0,0)"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
     </Style>
 
-    <!-- Indicador de estado (console): sem contorno, realce discreto no hover e texto sempre claro -->
-    <Style Selector="Button.status">
-        <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Padding" Value="10,6"/>
-        <Setter Property="Background" Value="Transparent"/>
-    </Style>
-    <Style Selector="Button.status:pointerover">
-        <Setter Property="Foreground" Value="#FFFFFF"/>
-    </Style>
-    <Style Selector="Button.status:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#2A2A2D"/>
-        <Setter Property="BorderBrush" Value="Transparent"/>
-        <Setter Property="Foreground" Value="#FFFFFF"/>
-    </Style>
-
-    <!-- Campos: cantos retos -->
-    <Style Selector="TextBox">
-        <Setter Property="CornerRadius" Value="0"/>
-    </Style>
-    <Style Selector="ComboBox">
-        <Setter Property="CornerRadius" Value="0"/>
-    </Style>
+    <!-- ===================== Tipografia e rótulos ===================== -->
 
     <!-- Tabela de parâmetros: cabeçalho na paleta cinza (o padrão do tema é preto puro) -->
     <Style Selector="DataGridColumnHeader">

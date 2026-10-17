@@ -155,7 +155,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <!-- Cartão de altura fixa: o botão fica sempre na base e as linhas de texto alinham entre cartões -->
-                            <Border Width="280" Height="176" Margin="0,0,12,12" Padding="12"
+                            <Border Classes="card" Width="280" Height="176" Margin="0,0,12,12" Padding="12"
                                     BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1">
                                 <Grid RowDefinitions="*,Auto">
                                     <Grid Grid.Row="0" ColumnDefinitions="64,*">
@@ -331,7 +331,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Border Background="#26262A" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
+                    <Border Classes="toast" Background="#1A1A1E" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                             BoxShadow="0 6 20 0 #90000000">
                         <Grid ColumnDefinitions="3,Auto,*,Auto">
                             <Border Grid.Column="0" Background="{Binding AccentBrush}"/>
